@@ -1,73 +1,283 @@
-/* Temel Stiller */
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin: 0;
-    padding: 0;
-    background: linear-gradient(135deg, #1e5799 0%, #2989d8 50%, #207cca 100%);
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+:root {
+    --primary-color: #2980b9;
+    --primary-hover: #3498db;
+    --secondary-color: #7f8c8d;
+    --secondary-hover: #95a5a6;
+    --success-color: #27ae60;
+    --success-hover: #2ecc71;
+    --danger-color: #e74c3c;
+    --danger-hover: #c0392b;
+    --light-color: #ecf0f1;
+    --dark-color: #2c3e50;
+    --border-color: #ddd;
 }
 
-.login-container {
-    width: 100%;
-    max-width: 1200px;
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f7fa;
+    color: #333;
+    line-height: 1.6;
+}
+
+#app {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Giriş Ekranı */
-#loginArea {
+#loginScreen {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+}
+
+.login-container {
     background: white;
+    padding: 2.5rem;
     border-radius: 10px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    padding: 40px;
-    width: 350px;
-    margin: 0 auto;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
     text-align: center;
 }
 
-/* Ana Ekran */
-#mainView {
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    padding: 20px;
-    width: 95%;
-    max-width: 1200px;
-    margin: 20px auto;
-    display: none;
+.login-container h1 {
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
 }
 
-/* Dashboard Düzeni */
-.dashboard {
+/* Ana Uygulama */
+#mainApp {
+    flex: 1;
     display: flex;
-    flex-direction: row;
-    gap: 20px;
+    flex-direction: column;
 }
 
-.sidebar {
-    width: 250px;
-    background: #f5f5f5;
+header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.content-area {
+    flex: 1;
+    padding: 1.5rem;
+    background-color: white;
+}
+
+/* İşyeri Listesi */
+#workplaceSection {
+    margin-top: 1rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+#workplaceList {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+#workplaceList li {
+    background-color: var(--light-color);
+    padding: 1.2rem;
     border-radius: 8px;
-    padding: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-left: 4px solid var(--primary-color);
+}
+
+#workplaceList li:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Çalışan Tablosu */
+.table-container {
+    margin-top: 1.5rem;
+    overflow-x: auto;
+}
+
+#employeeTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.5rem;
+}
+
+#employeeTable th,
+#employeeTable td {
+    padding: 0.8rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+#employeeTable th {
+    background-color: var(--primary-color);
+    color: white;
+    position: sticky;
+    top: 0;
+}
+
+#employeeTable tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+#employeeTable tr:hover {
+    background-color: #f1f1f1;
+}
+
+.table-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+/* Butonlar */
+.btn {
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 5px;
+    font-weight: 600;
+    cursor: pointer;
     transition: all 0.3s ease;
 }
 
-.content {
-    flex: 1;
-    background: #f5f5f5;
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+}
+
+.btn-secondary {
+    background-color: var(--secondary-color);
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: var(--secondary-hover);
+}
+
+.btn-success {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.btn-success:hover {
+    background-color: var(--success-hover);
+}
+
+.btn-danger {
+    background-color: var(--danger-color);
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: var(--danger-hover);
+}
+
+/* Modaller */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    overflow-y: auto;
+}
+
+.modal-content {
+    background-color: white;
+    margin: 2rem auto;
+    padding: 1.5rem;
     border-radius: 8px;
-    padding: 15px;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.wide-modal .modal-content {
+    max-width: 800px;
+}
+
+.close-modal {
+    color: #aaa;
+    float: right;
+    font-size: 1.5rem;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-modal:hover {
+    color: #333;
+}
+
+.form-group {
+    margin-bottom: 1.2rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.6rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1.5rem;
 }
 
 /* Responsive Düzen */
 @media (max-width: 768px) {
-    .dashboard {
-        flex-direction: column;
+    .login-container {
+        padding: 1.5rem;
+        margin: 1rem;
     }
-    .sidebar {
-        width: 100%;
+
+    #workplaceList {
+        grid-template-columns: 1fr;
+    }
+
+    .modal-content {
+        width: 95%;
+        margin: 1rem auto;
+        padding: 1rem;
     }
 }
-
-/* Diğer stiller... */
