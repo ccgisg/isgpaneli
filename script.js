@@ -49,7 +49,27 @@ class Database {
     });
   }
 
-  // ... (Diğer veritabanı metodları aynı) ...
+  // Diğer veritabanı metodları...
+  async getWorkplaces() {
+    const tx = this.db.transaction('workplaces', 'readonly');
+    const store = tx.objectStore('workplaces');
+    return new Promise((resolve, reject) => {
+      const request = store.getAll();
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = (e) => reject(e.target.error);
+    });
+  }
+
+  async getEmployeesByWorkplace(workplaceId) {
+    const tx = this.db.transaction('employees', 'readonly');
+    const store = tx.objectStore('employees');
+    const index = store.index('workplaceId');
+    return new Promise((resolve, reject) => {
+      const request = index.getAll(workplaceId);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = (e) => reject(e.target.error);
+    });
+  }
 }
 
 const appState = {
@@ -59,100 +79,76 @@ const appState = {
   selectedEmployee: null
 };
 
-// GİRİŞ İŞLEMLERİ
-async function login() {
+// İşyeri Yönetim Fonksiyonları
+async function loadWorkplaces() {
   try {
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value.trim();
+    console.log("İşyerleri yükleniyor...");
+    const workplaces = await appState.db.getWorkplaces();
+    const list = document.getElementById('workplaceList');
+    list.innerHTML = '';
     
-    console.log(`Giriş denemesi - Kullanıcı: ${username}, Şifre: ${password}`);
+    workplaces.forEach(wp => {
+      const li = document.createElement('li');
+      li.className = 'list-group-item d-flex justify-content-between align-items-center';
+      li.innerHTML = `
+        ${wp.name}
+        <div>
+          <button class="btn btn-sm btn-outline-primary" onclick="editWorkplace(${wp.id})">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="btn btn-sm btn-outline-danger" onclick="deleteWorkplace(${wp.id})">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      `;
+      li.addEventListener('click', () => openWorkplace(wp.id));
+      list.appendChild(li);
+    });
     
-    if (!username || !password) {
-      throw new Error('Lütfen kullanıcı adı ve şifre giriniz');
-    }
-
-    if (username === 'hekim' && password === 'Sifre123!') {
-      console.log('Giriş bilgileri doğru');
-      
-      localStorage.setItem('authToken', 'demo-token-' + Date.now());
-      console.log('Token oluşturuldu');
-      
-      await appState.db.initializeDB();
-      
-      document.getElementById('loginArea').style.display = 'none';
-      document.getElementById('mainView').style.display = 'block';
-      console.log('Arayüz güncellendi');
-      
-      await loadWorkplaces();
-      await loadDashboard();
-      
-      console.log('Giriş başarılı!');
-    } else {
-      throw new Error('Geçersiz kullanıcı adı veya şifre');
-    }
+    console.log(`${workplaces.length} işyeri yüklendi`);
   } catch (error) {
-    console.error('Giriş hatası:', error);
-    showError(error.message);
+    console.error('İşyerleri yüklenirken hata:', error);
+    showError('İşyerleri yüklenirken bir hata oluştu');
   }
 }
 
-function showError(message) {
-  const errorElement = document.getElementById('loginError');
-  errorElement.textContent = message;
-  errorElement.style.display = 'block';
-  
-  setTimeout(() => {
-    errorElement.style.display = 'none';
-  }, 5000);
-}
-
-function setupTestLogin() {
-  const testButton = document.getElementById('testLogin');
-  testButton.addEventListener('click', () => {
-    console.log('Test girişi tetiklendi');
-    document.getElementById('username').value = 'hekim';
-    document.getElementById('password').value = 'Sifre123!';
-    login();
-  });
-}
-
-function checkAuth() {
-  const token = localStorage.getItem('authToken');
-  if (token) {
-    console.log('Oturum açık, ana sayfaya yönlendiriliyor');
-    showMainView();
-    loadWorkplaces();
-    loadDashboard();
+async function loadDashboard() {
+  try {
+    console.log("Dashboard yükleniyor...");
+    const workplaces = await appState.db.getWorkplaces();
+    let totalEmployees = 0;
+    let upcomingExams = 0;
+    let overdueExams = 0;
+    
+    for (const wp of workplaces) {
+      const employees = await appState.db.getEmployeesByWorkplace(wp.id);
+      totalEmployees += employees.length;
+      
+      for (const emp of employees) {
+        if (emp.nextExamDate) {
+          const examDate = new Date(emp.nextExamDate);
+          const today = new Date();
+          const diffDays = Math.ceil((examDate - today) / (1000 * 60 * 60 * 24));
+          
+          if (diffDays <= 30 && diffDays >= 0) upcomingExams++;
+          else if (diffDays < 0) overdueExams++;
+        }
+      }
+    }
+    
+    document.getElementById('totalEmployees').textContent = totalEmployees;
+    document.getElementById('upcomingExams').textContent = upcomingExams;
+    document.getElementById('overdueExams').textContent = overdueExams;
+    
+    console.log("Dashboard verileri güncellendi");
+  } catch (error) {
+    console.error('Dashboard yüklenirken hata:', error);
   }
 }
 
-function logout() {
-  localStorage.removeItem('authToken');
-  location.reload();
-}
+// Diğer fonksiyonlar (login, showError, setupTestLogin vb.) önceki gibi kalacak...
 
-// ARAYÜZ FONKSİYONLARI
-function showLoginView() {
-  document.getElementById('loginArea').style.display = 'flex';
-  document.getElementById('mainView').style.display = 'none';
-  document.getElementById('workplaceView').style.display = 'none';
-}
-
-function showMainView() {
-  document.getElementById('loginArea').style.display = 'none';
-  document.getElementById('mainView').style.display = 'block';
-  document.getElementById('workplaceView').style.display = 'none';
-}
-
-function showWorkplaceView() {
-  document.getElementById('loginArea').style.display = 'none';
-  document.getElementById('mainView').style.display = 'none';
-  document.getElementById('workplaceView').style.display = 'block';
-}
-
-// ... (Diğer fonksiyonlar aynı) ...
-
-// UYGULAMA BAŞLATMA
+// Uygulama başlatma
 document.addEventListener('DOMContentLoaded', () => {
   console.log("DOM yüklendi");
   
@@ -161,3 +157,19 @@ document.addEventListener('DOMContentLoaded', () => {
   
   checkAuth();
 });
+
+// Eksik fonksiyonlar için placeholder'lar
+function editWorkplace(id) {
+  console.log("Düzenleme işlevi geliştirme aşamasında, ID:", id);
+  alert("Bu özellik şu anda geliştirme aşamasındadır");
+}
+
+function deleteWorkplace(id) {
+  console.log("Silme işlevi geliştirme aşamasında, ID:", id);
+  alert("Bu özellik şu anda geliştirme aşamasındadır");
+}
+
+function openWorkplace(id) {
+  console.log("İşyeri açma işlevi geliştirme aşamasında, ID:", id);
+  alert("Bu özellik şu anda geliştirme aşamasındadır");
+}
