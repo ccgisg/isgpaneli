@@ -25,7 +25,10 @@
         <div id="mainView" style="display:none;">
             <header>
                 <h2 id="welcomeMessage"></h2>
-                <button id="logoutButton">Çıkış Yap</button>
+                <div>
+                    <button id="addWorkplaceBtn">+ İşyeri Ekle</button>
+                    <button id="logoutButton">Çıkış Yap</button>
+                </div>
             </header>
             <div class="dashboard">
                 <div class="sidebar">
@@ -33,8 +36,23 @@
                     <ul id="workplaceList"></ul>
                 </div>
                 <div class="content">
+                    <div id="workplaceActions" style="display:none;">
+                        <button id="editWorkplaceBtn">Düzenle</button>
+                        <button id="deleteWorkplaceBtn">Sil</button>
+                    </div>
                     <h3 id="selectedWorkplace"></h3>
                     <div id="employeeList"></div>
+                </div>
+            </div>
+
+            <!-- Modal -->
+            <div id="workplaceModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h3 id="modalTitle">İşyeri Ekle</h3>
+                    <input type="text" id="workplaceName" placeholder="İşyeri Adı">
+                    <input type="text" id="workplaceAddress" placeholder="Adres">
+                    <button id="saveWorkplaceBtn">Kaydet</button>
                 </div>
             </div>
         </div>
