@@ -7,6 +7,8 @@
     --success-hover: #2ecc71;
     --danger-color: #e74c3c;
     --danger-hover: #c0392b;
+    --warning-color: #f39c12;
+    --warning-hover: #e67e22;
     --light-color: #ecf0f1;
     --dark-color: #2c3e50;
     --border-color: #ddd;
@@ -51,6 +53,7 @@
     color: var(--danger-color);
     margin-top: 1rem;
     display: none;
+    font-size: 0.9rem;
 }
 
 /* Ana Uygulama */
@@ -105,6 +108,11 @@
     margin-bottom: 0.5rem;
 }
 
+.workplace-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
 /* Çalışan Tablosu */
 .table-container {
     margin-top: 1.5rem;
@@ -145,4 +153,19 @@
     .table-actions {
         flex-direction: column;
     }
+    
+    .workplace-actions {
+        flex-direction: column;
+    }
+}
+
+/* Buton stilleri */
+.btn-warning {
+    background-color: var(--warning-color);
+    color: white;
+}
+
+.btn-warning:hover {
+    background-color: var(--warning-hover);
+    color: white;
 }
