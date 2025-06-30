@@ -12,27 +12,8 @@
     --border-color: #ddd;
 }
 
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f5f7fa;
-    color: #333;
-    line-height: 1.6;
-}
-
-#app {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-}
-
 /* Giriş Ekranı */
-#loginScreen {
+.login-screen {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -66,22 +47,14 @@ body {
     font-weight: 600;
 }
 
-.input-group input {
-    width: 100%;
-    padding: 0.8rem;
-    border: 1px solid var(--border-color);
-    border-radius: 5px;
-    font-size: 1rem;
+.error-message {
+    color: var(--danger-color);
+    margin-top: 1rem;
+    display: none;
 }
 
 /* Ana Uygulama */
-#mainApp {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-header {
+.app-header {
     background-color: var(--primary-color);
     color: white;
     padding: 1rem 2rem;
@@ -98,10 +71,6 @@ header {
 }
 
 /* İşyeri Listesi */
-#workplaceSection {
-    margin-top: 1rem;
-}
-
 .section-header {
     display: flex;
     justify-content: space-between;
@@ -109,14 +78,15 @@ header {
     margin-bottom: 1.5rem;
 }
 
-#workplaceList {
+.workplace-list {
     list-style: none;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 1rem;
+    padding: 0;
 }
 
-#workplaceList li {
+.workplace-item {
     background-color: var(--light-color);
     padding: 1.2rem;
     border-radius: 8px;
@@ -125,43 +95,20 @@ header {
     border-left: 4px solid var(--primary-color);
 }
 
-#workplaceList li:hover {
+.workplace-item:hover {
     transform: translateY(-3px);
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+}
+
+.workplace-item h4 {
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
 }
 
 /* Çalışan Tablosu */
 .table-container {
     margin-top: 1.5rem;
     overflow-x: auto;
-}
-
-#employeeTable {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 1.5rem;
-}
-
-#employeeTable th,
-#employeeTable td {
-    padding: 0.8rem 1rem;
-    text-align: left;
-    border-bottom: 1px solid var(--border-color);
-}
-
-#employeeTable th {
-    background-color: var(--primary-color);
-    color: white;
-    position: sticky;
-    top: 0;
-}
-
-#employeeTable tr:nth-child(even) {
-    background-color: #f9f9f9;
-}
-
-#employeeTable tr:hover {
-    background-color: #f1f1f1;
 }
 
 .table-actions {
@@ -171,116 +118,17 @@ header {
     margin-top: 1rem;
 }
 
-/* Butonlar */
-.btn {
-    padding: 0.6rem 1.2rem;
-    border: none;
-    border-radius: 5px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.btn-primary {
-    background-color: var(--primary-color);
-    color: white;
-}
-
-.btn-primary:hover {
-    background-color: var(--primary-hover);
-}
-
-.btn-secondary {
-    background-color: var(--secondary-color);
-    color: white;
-}
-
-.btn-secondary:hover {
-    background-color: var(--secondary-hover);
-}
-
-.btn-success {
-    background-color: var(--success-color);
-    color: white;
-}
-
-.btn-success:hover {
-    background-color: var(--success-hover);
-}
-
-.btn-danger {
-    background-color: var(--danger-color);
-    color: white;
-}
-
-.btn-danger:hover {
-    background-color: var(--danger-hover);
-}
-
-/* Modaller */
-.modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-    overflow-y: auto;
-}
-
+/* Modal İçeriği */
 .modal-content {
-    background-color: white;
-    margin: 2rem auto;
-    padding: 1.5rem;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 600px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
 }
 
-.wide-modal .modal-content {
-    max-width: 800px;
+.modal-header {
+    border-bottom: 1px solid var(--border-color);
 }
 
-.close-modal {
-    color: #aaa;
-    float: right;
-    font-size: 1.5rem;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.close-modal:hover {
-    color: #333;
-}
-
-.form-group {
-    margin-bottom: 1.2rem;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-    width: 100%;
-    padding: 0.6rem;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    font-size: 1rem;
-}
-
-.form-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-    margin-top: 1.5rem;
+.modal-footer {
+    border-top: 1px solid var(--border-color);
 }
 
 /* Responsive Düzen */
@@ -290,13 +138,11 @@ header {
         margin: 1rem;
     }
 
-    #workplaceList {
+    .workplace-list {
         grid-template-columns: 1fr;
     }
-
-    .modal-content {
-        width: 95%;
-        margin: 1rem auto;
-        padding: 1rem;
+    
+    .table-actions {
+        flex-direction: column;
     }
 }
