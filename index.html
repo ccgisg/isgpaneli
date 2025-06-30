@@ -7,52 +7,104 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="login-container">
-        <div id="loginArea">
-            <div class="login-header">
+    <div id="app">
+        <!-- Giriş Ekranı -->
+        <div id="loginScreen">
+            <div class="login-container">
                 <h1>İşyeri Hekimliği Paneli</h1>
-                <div class="logo"></div>
+                <div class="input-group">
+                    <label for="username">Kullanıcı Adı</label>
+                    <input type="text" id="username" placeholder="hekim">
+                </div>
+                <div class="input-group">
+                    <label for="password">Şifre</label>
+                    <input type="password" id="password" placeholder="•••••••">
+                </div>
+                <button id="loginBtn" class="btn-primary">Giriş Yap</button>
             </div>
-            
-            <div class="input-group">
-                <label for="username">Kullanıcı Adı</label>
-                <input type="text" id="username" placeholder="hekim">
-            </div>
-            <div class="input-group">
-                <label for="password">Şifre</label>
-                <input type="password" id="password" placeholder="•••••••">
-            </div>
-            <button id="loginButton" class="login-btn">Giriş Yap</button>
         </div>
 
-        <div id="mainView" style="display:none;">
+        <!-- Ana Uygulama -->
+        <div id="mainApp" style="display:none;">
             <header>
-                <h2 id="welcomeMessage"></h2>
-                <div>
-                    <button id="addWorkplaceBtn" class="action-btn">+ İşyeri Ekle</button>
-                    <button id="logoutButton" class="logout-btn">Çıkış Yap</button>
-                </div>
+                <h2 id="welcomeText"></h2>
+                <button id="logoutBtn" class="btn-secondary">Çıkış Yap</button>
             </header>
-            <div class="dashboard">
-                <div class="sidebar" id="sidebar">
-                    <h3>İşyerleri</h3>
+
+            <div class="content-area">
+                <!-- İşyeri Listesi -->
+                <div id="workplaceSection">
+                    <div class="section-header">
+                        <h3>İşyerleri</h3>
+                        <button id="addWorkplaceBtn" class="btn-primary">+ Yeni Ekle</button>
+                    </div>
                     <ul id="workplaceList"></ul>
                 </div>
-                <div class="content">
-                    <div id="workplaceActions" style="display:none;">
-                        <button id="backButton" class="action-btn">← İşyeri Listesine Dön</button>
+
+                <!-- Çalışan Listesi -->
+                <div id="employeeSection" style="display:none;">
+                    <div class="section-header">
+                        <button id="backBtn" class="btn-secondary">← Geri</button>
+                        <h3 id="currentWorkplaceTitle"></h3>
                     </div>
-                    <h3 id="selectedWorkplace"></h3>
-                    <div id="employeeList"></div>
+                    <div class="table-container">
+                        <table id="employeeTable">
+                            <thead>
+                                <tr>
+                                    <th>S.No</th>
+                                    <th>Ad Soyad</th>
+                                    <th>TCKN</th>
+                                    <th>Muayene Tarihi</th>
+                                    <th>Sonraki Muayene</th>
+                                    <th>İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                        <div class="table-actions">
+                            <button id="exportExcelBtn" class="btn-success">Excel'e Aktar</button>
+                            <button id="importExcelBtn" class="btn-success">Excel'den Al</button>
+                        </div>
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Modaller -->
-            <div id="workplaceModal" class="modal">
-                <!-- İşyeri modal içeriği -->
+        <!-- Modaller -->
+        <div id="workplaceModal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h3 id="modalTitle">Yeni İşyeri</h3>
+                <div class="form-group">
+                    <label>İşyeri Adı</label>
+                    <input type="text" id="workplaceNameInput">
+                </div>
+                <div class="form-group">
+                    <label>Adres</label>
+                    <input type="text" id="workplaceAddressInput">
+                </div>
+                <button id="saveWorkplaceBtn" class="btn-primary">Kaydet</button>
             </div>
-            <div id="ek2Modal" class="modal"></div>
-            <div id="fileUploadModal" class="modal"></div>
+        </div>
+
+        <div id="ek2Modal" class="modal wide-modal">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <div id="ek2FormContent"></div>
+                <div class="form-actions">
+                    <button id="saveEk2Btn" class="btn-primary">Kaydet</button>
+                    <button id="printEk2Btn" class="btn-secondary">Yazdır</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="fileUploadModal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h3>Dosya Yükle</h3>
+                <input type="file" id="fileInput" accept=".pdf,.jpeg,.jpg,.tif,.tiff">
+                <button id="uploadFileBtn" class="btn-primary">Yükle</button>
+            </div>
         </div>
     </div>
 
