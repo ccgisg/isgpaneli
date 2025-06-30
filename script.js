@@ -1,181 +1,195 @@
-// Önceki kodları koruyun ve aşağıdakileri ekleyin/güncelleyin
+// Veritabanı Sınıfı
+class Database {
+    constructor() {
+        this.dbName = 'isyeriHekimligiDB';
+        this.version = 4;
+        this.db = null;
+    }
 
-function generateEk2(index) {
-    const employee = appState.currentEmployees[index];
-    const today = new Date();
-    const examDate = employee.examDate ? reverseDateFormat(employee.examDate) : formatDateInput(today);
-    const nextExamDate = employee.nextExamDate || calculateNextExamDate(examDate);
+    async initDB() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(this.dbName, this.version);
 
-    const ek2Modal = document.getElementById('ek2Modal');
-    ek2Modal.innerHTML = `
-        <div class="modal-content ek2-content">
-            <span class="close" onclick="closeEk2Modal()">&times;</span>
-            <div class="ek2-form">
-                <table>
-                    <tr>
-                        <th colspan="2">İŞYERİNİN</th>
-                    </tr>
-                    <tr>
-                        <td>Ünvanı</td>
-                        <td><input type="text" id="workplaceTitle" value="${appState.currentWorkplace?.name || ''}"></td>
-                    </tr>
-                    <!-- Diğer işyeri bilgileri... -->
-                </table>
+            request.onerror = (event) => {
+                console.error("Veritabanı hatası:", event.target.error);
+                reject(event.target.error);
+            };
 
-                <table>
-                    <tr>
-                        <th colspan="2">ÇALIŞANIN</th>
-                    </tr>
-                    <tr>
-                        <td>Adı ve soyadı</td>
-                        <td><input type="text" id="employeeName" value="${employee.name || ''}"></td>
-                    </tr>
-                    <!-- Diğer çalışan bilgileri... -->
-                </table>
+            request.onsuccess = (event) => {
+                this.db = event.target.result;
+                resolve(this.db);
+            };
 
-                <!-- TIBBİ ANAMNEZ bölümü -->
-                <table>
-                    <tr>
-                        <th colspan="3">TIBBİ ANAMNEZ</th>
-                    </tr>
-                    <tr>
-                        <td>Aşağıdaki yakınmalardan herhangi birini yaşadınız mı?</td>
-                        <td>Hayır</td>
-                        <td>Evet</td>
-                    </tr>
-                    <!-- Yakınma listesi... -->
-                </table>
+            request.onupgradeneeded = (event) => {
+                const db = event.target.result;
+                
+                if (!db.objectStoreNames.contains('workplaces')) {
+                    db.createObjectStore('workplaces', { keyPath: 'id' });
+                }
+                
+                let employeeStore;
+                if (!db.objectStoreNames.contains('employees')) {
+                    employeeStore = db.createObjectStore('employees', { keyPath: 'id' });
+                } else {
+                    employeeStore = event.target.transaction.objectStore('employees');
+                }
+                
+                if (!employeeStore.indexNames.contains('workplaceId')) {
+                    employeeStore.createIndex('workplaceId', 'workplaceId', { unique: false });
+                }
 
-                <!-- FİZİK MUAYENE SONUÇLARI bölümü -->
-                <table>
-                    <tr>
-                        <th colspan="2">FİZİK MUAYENE SONUÇLARI</th>
-                    </tr>
-                    <!-- Muayene sonuçları... -->
-                </table>
+                if (!db.objectStoreNames.contains('files')) {
+                    db.createObjectStore('files', { keyPath: 'id' });
+                }
+            };
+        });
+    }
 
-                <!-- KANAAT VE SONUÇ bölümü -->
-                <div class="conclusion-section">
-                    <h3>KANAAT VE SONUÇ * :</h3>
-                    <p>1- <textarea rows="2" style="width: 80%"></textarea> işinde bedenen ve ruhen çalışmaya elverişlidir.</p>
-                    <p>2- <textarea rows="2" style="width: 80%"></textarea> şartı ile çalışmaya elverişlidir</p>
-                    <p><small>(*Yapılan muayene sonucunda çalışanın gece veya vardiyalı çalışma koşullarında çalışıp çalışamayacağı ile vücut sağlığını ve bütünlüğünü tamamlayıcı uygun alet teçhizat vs... bulunması durumunda çalışan için bu koşullarla çalışmaya elverişli olup olmadığı kanaati belirtilecektir.)</small></p>
-                </div>
-
-                <div class="signature-area">
-                    <p>İMZA</p>
-                    <p>Adı ve Soyadı: <input type="text"></p>
-                    <p>Diploma Tarih ve No: <input type="text"></p>
-                    <p>İşyeri Hekimliği Belgesi Tarih ve No: <input type="text"></p>
-                </div>
-
-                <div class="form-actions">
-                    <button class="save-btn" onclick="saveEk2Form(${index})">Kaydet</button>
-                    <button class="print-btn" onclick="printEk2Form()">Yazdır</button>
-                </div>
-            </div>
-        </div>
-    `;
-    ek2Modal.style.display = 'block';
+    // Diğer veritabanı metodları...
 }
 
-// Dosya yükleme fonksiyonları
-function initFileUpload() {
-    document.getElementById('uploadFileBtn').addEventListener('click', uploadFile);
-}
+// Uygulama State'i
+const appState = {
+    db: new Database(),
+    currentUser: null,
+    currentWorkplace: null,
+    currentEmployees: [],
+    currentFileUploadIndex: null
+};
 
-function showFileUploadModal(employeeIndex) {
-    currentFileUploadIndex = employeeIndex;
-    document.getElementById('fileUploadModal').style.display = 'block';
-}
+// Sayfa Yüklendiğinde
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        await appState.db.initDB();
+        initLogin();
+        checkAuth();
+        initModal();
+        initLogout();
+        initBackButton();
+        initFileUpload();
+    } catch (error) {
+        console.error('Başlatma hatası:', error);
+    }
+});
 
-function uploadFile() {
-    const fileInput = document.getElementById('fileInput');
-    if (fileInput.files.length > 0) {
-        const file = fileInput.files[0];
-        // Burada dosyayı işleyin (veritabanına kaydedin veya sunucuya yükleyin)
-        alert(`${file.name} dosyası ${appState.currentEmployees[currentFileUploadIndex].name} için yüklendi!`);
-        closeFileUploadModal();
-    } else {
-        alert('Lütfen bir dosya seçin!');
+// Giriş İşlemleri
+function initLogin() {
+    const loginButton = document.getElementById('loginButton');
+    if (loginButton) {
+        loginButton.addEventListener('click', login);
     }
 }
 
-function closeFileUploadModal() {
-    document.getElementById('fileUploadModal').style.display = 'none';
+async function login() {
+    try {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        if (!username || !password) {
+            throw new Error('Kullanıcı adı ve şifre gereklidir');
+        }
+
+        if (username === 'hekim' && password === 'Sifre123!') {
+            localStorage.setItem('authToken', 'demo-token');
+            appState.currentUser = { username, role: 'doctor' };
+            showMainView();
+            await loadWorkplaces();
+        } else {
+            alert('Geçersiz kullanıcı adı veya şifre!');
+        }
+    } catch (error) {
+        console.error('Giriş hatası:', error);
+        alert(`Giriş hatası: ${error.message}`);
+    }
 }
 
-// Geri butonu işlevi
-function initBackButton() {
-    document.getElementById('backButton').addEventListener('click', () => {
-        document.getElementById('employeeList').innerHTML = '';
-        document.getElementById('selectedWorkplace').textContent = '';
-        document.getElementById('workplaceActions').style.display = 'none';
-        document.getElementById('sidebar').style.display = 'block';
+function checkAuth() {
+    if (localStorage.getItem('authToken')) {
+        appState.currentUser = { username: 'hekim', role: 'doctor' };
+        showMainView();
+        loadWorkplaces();
+    }
+}
+
+function showMainView() {
+    document.getElementById('loginArea').style.display = 'none';
+    document.getElementById('mainView').style.display = 'block';
+    document.getElementById('welcomeMessage').textContent = `Hoş geldiniz, ${appState.currentUser.username}`;
+}
+
+// Çıkış İşlemi
+function initLogout() {
+    const logoutButton = document.getElementById('logoutButton');
+    if (logoutButton) {
+        logoutButton.addEventListener('click', () => {
+            localStorage.removeItem('authToken');
+            location.reload();
+        });
+    }
+}
+
+// İşyeri İşlemleri
+async function loadWorkplaces() {
+    try {
+        const workplaces = await appState.db.getWorkplaces();
+        
+        if (workplaces.length === 0) {
+            await addDemoData();
+            return loadWorkplaces();
+        }
+
+        renderWorkplaces(workplaces);
+    } catch (error) {
+        console.error('İşyerleri yüklenirken hata:', error);
+    }
+}
+
+function renderWorkplaces(workplaces) {
+    const listElement = document.getElementById('workplaceList');
+    listElement.innerHTML = '';
+
+    workplaces.forEach(workplace => {
+        const li = document.createElement('li');
+        li.textContent = workplace.name;
+        li.onclick = async () => {
+            appState.currentWorkplace = workplace;
+            await showWorkplaceDetails(workplace);
+        };
+        listElement.appendChild(li);
     });
 }
 
-// Excel'den veri alma
-function importFromExcel() {
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = '.csv,.xlsx,.xls';
-    
-    fileInput.onchange = async (e) => {
-        const file = e.target.files[0];
-        const reader = new FileReader();
-        
-        reader.onload = async (event) => {
-            try {
-                // CSV verisini işle
-                const csvData = event.target.result;
-                const employees = parseCsvData(csvData);
-                
-                // Veritabanına ekle
-                for (const emp of employees) {
-                    emp.workplaceId = appState.currentWorkplace.id;
-                    await appState.db.addEmployee(emp);
-                }
-                
-                // Listeyi yenile
-                await loadEmployees(appState.currentWorkplace.id);
-                alert('Veriler başarıyla içe aktarıldı!');
-            } catch (error) {
-                console.error('Excel import hatası:', error);
-                alert('Excel verileri işlenirken hata oluştu!');
-            }
-        };
-        
-        reader.readAsText(file);
-    };
-    
-    fileInput.click();
+async function showWorkplaceDetails(workplace) {
+    document.getElementById('selectedWorkplace').textContent = workplace.name;
+    document.getElementById('workplaceActions').style.display = 'block';
+    document.getElementById('sidebar').style.display = 'none';
+    await loadEmployees(workplace.id);
 }
 
-function parseCsvData(csvData) {
-    // CSV verisini işleyip employee nesnelerine dönüştür
-    // Bu kısım CSV formatına göre özelleştirilmelidir
-    const lines = csvData.split('\n');
-    const headers = lines[0].split(',');
-    const employees = [];
-    
-    for (let i = 1; i < lines.length; i++) {
-        if (lines[i].trim() === '') continue;
-        
-        const values = lines[i].split(',');
-        const employee = {};
-        
-        for (let j = 0; j < headers.length; j++) {
-            employee[headers[j].trim()] = values[j] ? values[j].trim() : '';
-        }
-        
-        employees.push(employee);
+// Geri Butonu
+function initBackButton() {
+    const backButton = document.getElementById('backButton');
+    if (backButton) {
+        backButton.addEventListener('click', () => {
+            document.getElementById('employeeList').innerHTML = '';
+            document.getElementById('selectedWorkplace').textContent = '';
+            document.getElementById('workplaceActions').style.display = 'none';
+            document.getElementById('sidebar').style.display = 'block';
+        });
     }
-    
-    return employees;
 }
 
-// Çalışan listesini render ederken dosya yükleme butonu ekleyin
+// Çalışan İşlemleri
+async function loadEmployees(workplaceId) {
+    try {
+        const employees = await appState.db.getEmployees(workplaceId);
+        appState.currentEmployees = employees;
+        renderEmployees(employees);
+    } catch (error) {
+        console.error('Çalışanlar yüklenirken hata:', error);
+    }
+}
+
 function renderEmployees(employees) {
     const container = document.getElementById('employeeList');
     container.innerHTML = `
@@ -211,17 +225,49 @@ function renderEmployees(employees) {
             <button onclick="importFromExcel()" class="excel-import-btn">Excel'den Al</button>
         </div>
     `;
-    
-    // Sidebar'ı gizle
-    document.getElementById('sidebar').style.display = 'none';
 }
 
-// DOM yüklendiğinde yeni fonksiyonları başlatın
-document.addEventListener('DOMContentLoaded', () => {
-    initLogin();
-    checkAuth();
-    initModal();
-    initLogout();
-    initBackButton();
-    initFileUpload();
-});
+// Excel İşlemleri
+function exportToExcel() {
+    // Excel'e aktarma kodu
+}
+
+function importFromExcel() {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.csv,.xlsx,.xls';
+    
+    fileInput.onchange = async (e) => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        
+        reader.onload = async (event) => {
+            try {
+                const csvData = event.target.result;
+                const employees = parseCsvData(csvData);
+                
+                for (const emp of employees) {
+                    emp.workplaceId = appState.currentWorkplace.id;
+                    await appState.db.addEmployee(emp);
+                }
+                
+                await loadEmployees(appState.currentWorkplace.id);
+                alert(`${employees.length} çalışan başarıyla eklendi!`);
+            } catch (error) {
+                console.error('Excel import hatası:', error);
+                alert('Excel verileri işlenirken hata oluştu!');
+            }
+        };
+        
+        reader.readAsText(file);
+    };
+    
+    fileInput.click();
+}
+
+function parseCsvData(csvData) {
+    // CSV verisini işle
+    return []; // Örnek dönüş
+}
+
+// Diğer fonksiyonlar...
