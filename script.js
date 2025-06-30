@@ -112,11 +112,6 @@ const appState = {
     currentEmployees: []
 };
 
-// Modal değişkenleri
-let currentModalMode = 'add';
-let currentEditingId = null;
-
-// DOM Yüklendiğinde çalışacak fonksiyonlar
 document.addEventListener('DOMContentLoaded', () => {
     initLogin();
     checkAuth();
@@ -239,12 +234,12 @@ function renderEmployees(employees) {
                 ${employees.map((emp, index) => `
                 <tr>
                     <td>${index+1}</td>
-                    <td>${emp.name}</td>
-                    <td>${emp.tckn}</td>
+                    <td>${emp.name || ''}</td>
+                    <td>${emp.tckn || ''}</td>
                     <td>${emp.examDate || ''}</td>
                     <td>${emp.nextExamDate || ''}</td>
                     <td>
-                        <button onclick="generateEk2('${emp.name}', '${emp.tckn}')" class="action-btn">Ek-2</button>
+                        <button onclick="generateEk2(${index})" class="action-btn">Ek-2</button>
                     </td>
                 </tr>
                 `).join('')}
@@ -337,60 +332,169 @@ async function deleteCurrentWorkplace() {
     }
 }
 
-function generateEk2(name, tckn) {
+function generateEk2(index) {
+    const employee = appState.currentEmployees[index];
     const today = new Date();
-    const examDate = formatDate(today);
-    const nextExamDate = formatDate(new Date(today.setFullYear(today.getFullYear() + 5)));
+    const examDate = employee.examDate ? reverseDateFormat(employee.examDate) : formatDateInput(today);
+    const nextExamDate = employee.nextExamDate || calculateNextExamDate(examDate);
 
     const ek2Modal = document.getElementById('ek2Modal');
     ek2Modal.innerHTML = `
-        <div class="ek2-form">
+        <div class="modal-content ek2-content">
+            <span class="close" onclick="closeEk2Modal()">&times;</span>
             <h2>Çalışan Sağlık Formu (Ek-2)</h2>
-            <div class="form-group">
-                <label>Çalışan Adı Soyadı:</label>
-                <input type="text" value="${name}" readonly>
-            </div>
-            <div class="form-group">
-                <label>TC Kimlik No:</label>
-                <input type="text" value="${tckn}" readonly>
-            </div>
-            <div class="form-group">
-                <label>Muayene Tarihi:</label>
-                <input type="date" id="examDateInput" value="${examDate}">
-            </div>
-            <div class="form-group">
-                <label>Sonraki Muayene Tarihi:</label>
-                <input type="text" value="${nextExamDate}" readonly>
-            </div>
             
-            <!-- Ek-2 form içeriği buraya eklenecek -->
-            <div style="margin-top: 20px;">
-                <h3>TIBBİ ANAMNEZ</h3>
-                <!-- Form içeriği devam eder -->
-            </div>
-            
-            <div class="form-actions">
-                <button onclick="saveEk2Form('${name}', '${tckn}')">Kaydet</button>
-                <button onclick="printEk2Form()">Yazdır</button>
-                <button onclick="closeEk2Modal()">Kapat</button>
+            <div class="ek2-form">
+                <!-- İşyeri Bilgileri -->
+                <div class="form-section">
+                    <h3>İŞYERİNİN</h3>
+                    <div class="form-group">
+                        <label>Ünvanı</label>
+                        <input type="text" id="workplaceTitle" value="${appState.currentWorkplace?.name || ''}">
+                    </div>
+                    <div class="form-group">
+                        <label>SGK Sicil No.</label>
+                        <input type="text" id="sgkNumber">
+                    </div>
+                    <div class="form-group">
+                        <label>Adresi</label>
+                        <input type="text" id="workplaceAddress" value="${appState.currentWorkplace?.address || ''}">
+                    </div>
+                    <div class="form-group">
+                        <label>Tel ve Faks No</label>
+                        <input type="text" id="workplacePhone">
+                    </div>
+                    <div class="form-group">
+                        <label>E-Posta</label>
+                        <input type="email" id="workplaceEmail">
+                    </div>
+                </div>
+
+                <!-- Çalışan Bilgileri -->
+                <div class="form-section">
+                    <h3>ÇALIŞANIN</h3>
+                    <div class="form-group">
+                        <label>Adı ve soyadı</label>
+                        <input type="text" id="employeeName" value="${employee.name || ''}">
+                    </div>
+                    <div class="form-group">
+                        <label>T.C. Kimlik No</label>
+                        <input type="text" id="employeeTc" value="${employee.tckn || ''}">
+                    </div>
+                    <div class="form-group">
+                        <label>Doğum Yeri ve Tarihi</label>
+                        <input type="text" id="employeeBirth">
+                    </div>
+                    <div class="form-group">
+                        <label>Cinsiyeti</label>
+                        <select id="employeeGender">
+                            <option value="">Seçiniz</option>
+                            <option value="Erkek">Erkek</option>
+                            <option value="Kadın">Kadın</option>
+                        </select>
+                    </div>
+                    <!-- Diğer çalışan bilgileri... -->
+                </div>
+
+                <!-- Tarih Bilgileri -->
+                <div class="form-group date-group">
+                    <label>Muayene Tarihi:</label>
+                    <input type="date" id="examDateInput" value="${examDate}" onchange="updateNextExamDate()">
+                </div>
+                <div class="form-group date-group">
+                    <label>Sonraki Muayene Tarihi:</label>
+                    <input type="text" id="nextExamDateInput" value="${nextExamDate}" readonly>
+                </div>
+
+                <!-- Form İçeriği -->
+                <div class="form-section">
+                    <p>İşe giriş/periyodik muayene olmayı kabul ettiğimi ve muayene sırasında verdiğim bilgilerin doğru ve eksiksiz olduğunu beyan ederim.</p>
+                    <div style="text-align: right; margin-top: 50px;">
+                        <p>Çalışanın Adı Soyadı</p>
+                        <p>İMZA</p>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button class="save-btn" onclick="saveEk2Form(${index})">Kaydet</button>
+                    <button class="print-btn" onclick="printEk2Form()">Yazdır</button>
+                </div>
             </div>
         </div>
     `;
     ek2Modal.style.display = 'block';
 }
 
-function formatDate(date) {
+function reverseDateFormat(dateStr) {
+    if (!dateStr) return '';
+    const parts = dateStr.split('.');
+    if (parts.length === 3) {
+        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+    return dateStr;
+}
+
+function formatDateInput(date) {
+    if (typeof date === 'string') return date;
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function calculateNextExamDate(examDate) {
+    const date = new Date(examDate);
+    date.setFullYear(date.getFullYear() + 5);
+    return formatDateDisplay(date);
+}
+
+function formatDateDisplay(date) {
+    if (typeof date === 'string') {
+        // Eğer tarih zaten formatlıysa
+        if (date.includes('.')) return date;
+        // ISO formatından çevir
+        const [year, month, day] = date.split('-');
+        return `${day}.${month}.${year}`;
+    }
     const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
     return `${day}.${month}.${year}`;
 }
 
-function saveEk2Form(name, tckn) {
+function updateNextExamDate() {
     const examDate = document.getElementById('examDateInput').value;
-    // Burada form verilerini kaydetme işlemi yapılacak
-    alert(`${name} için Ek-2 formu kaydedildi!`);
-    closeEk2Modal();
+    const nextExamDate = calculateNextExamDate(examDate);
+    document.getElementById('nextExamDateInput').value = nextExamDate;
+}
+
+async function saveEk2Form(index) {
+    const examDate = document.getElementById('examDateInput').value;
+    const nextExamDate = document.getElementById('nextExamDateInput').value;
+    
+    // Çalışanın bilgilerini güncelle
+    const employee = appState.currentEmployees[index];
+    employee.examDate = formatDateDisplay(examDate);
+    employee.nextExamDate = nextExamDate;
+    
+    // Diğer form alanlarını güncelle
+    employee.name = document.getElementById('employeeName').value;
+    employee.tckn = document.getElementById('employeeTc').value;
+    
+    // Veritabanını güncelle
+    try {
+        await appState.db.updateEmployee(employee);
+        
+        // Listeyi yenile
+        appState.currentEmployees[index] = employee;
+        renderEmployees(appState.currentEmployees);
+        
+        // Modalı kapat
+        closeEk2Modal();
+    } catch (error) {
+        console.error('Çalışan güncellenirken hata:', error);
+        alert('Güncelleme işlemi başarısız oldu!');
+    }
 }
 
 function printEk2Form() {
@@ -404,7 +508,7 @@ function closeEk2Modal() {
 function exportToExcel() {
     let csv = 'S.No,Ad Soyad,TCKN,Muayene Tarihi,Sonraki Muayene\n';
     appState.currentEmployees.forEach((emp, index) => {
-        csv += `${index+1},${emp.name},${emp.tckn},${emp.examDate || ''},${emp.nextExamDate || ''}\n`;
+        csv += `${index+1},${emp.name || ''},${emp.tckn || ''},${emp.examDate || ''},${emp.nextExamDate || ''}\n`;
     });
     
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -428,9 +532,33 @@ async function addDemoData() {
     ];
 
     const employees = [
-        { id: 1, workplaceId: 1, name: 'Ahmet Yılmaz', tckn: '11111111111', position: 'Mühendis', examDate: '01.01.2023', nextExamDate: '01.01.2028' },
-        { id: 2, workplaceId: 1, name: 'Mehmet Demir', tckn: '22222222222', position: 'Teknisyen', examDate: '15.03.2023', nextExamDate: '15.03.2028' },
-        { id: 3, workplaceId: 2, name: 'Ayşe Kaya', tckn: '33333333333', position: 'Yönetici', examDate: '20.05.2023', nextExamDate: '20.05.2028' }
+        { 
+            id: 1, 
+            workplaceId: 1, 
+            name: 'Ahmet Yılmaz', 
+            tckn: '11111111111', 
+            position: 'Mühendis', 
+            examDate: '01.01.2023', 
+            nextExamDate: '01.01.2028' 
+        },
+        { 
+            id: 2, 
+            workplaceId: 1, 
+            name: 'Mehmet Demir', 
+            tckn: '22222222222', 
+            position: 'Teknisyen', 
+            examDate: '15.03.2023', 
+            nextExamDate: '15.03.2028' 
+        },
+        { 
+            id: 3, 
+            workplaceId: 2, 
+            name: 'Ayşe Kaya', 
+            tckn: '33333333333', 
+            position: 'Yönetici', 
+            examDate: '20.05.2023', 
+            nextExamDate: '20.05.2028' 
+        }
     ];
 
     for (const wp of workplaces) {
@@ -455,5 +583,6 @@ window.generateEk2 = generateEk2;
 window.saveEk2Form = saveEk2Form;
 window.printEk2Form = printEk2Form;
 window.closeEk2Modal = closeEk2Modal;
+window.updateNextExamDate = updateNextExamDate;
 window.exportToExcel = exportToExcel;
 window.importFromExcel = importFromExcel;
