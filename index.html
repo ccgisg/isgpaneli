@@ -7,9 +7,13 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
+    <div class="login-container">
         <div id="loginArea">
-            <h1>İşyeri Hekimliği Paneli</h1>
+            <div class="login-header">
+                <h1>İşyeri Hekimliği Paneli</h1>
+                <div class="logo"></div>
+            </div>
+            
             <div class="input-group">
                 <label for="username">Kullanıcı Adı</label>
                 <input type="text" id="username" placeholder="hekim">
@@ -18,16 +22,15 @@
                 <label for="password">Şifre</label>
                 <input type="password" id="password" placeholder="•••••••">
             </div>
-            <button id="loginButton">Giriş Yap</button>
-            <button id="testLogin">Test Girişi Yap</button>
+            <button id="loginButton" class="login-btn">Giriş Yap</button>
         </div>
 
         <div id="mainView" style="display:none;">
             <header>
                 <h2 id="welcomeMessage"></h2>
                 <div>
-                    <button id="addWorkplaceBtn">+ İşyeri Ekle</button>
-                    <button id="logoutButton">Çıkış Yap</button>
+                    <button id="addWorkplaceBtn" class="action-btn">+ İşyeri Ekle</button>
+                    <button id="logoutButton" class="logout-btn">Çıkış Yap</button>
                 </div>
             </header>
             <div class="dashboard">
@@ -37,8 +40,8 @@
                 </div>
                 <div class="content">
                     <div id="workplaceActions" style="display:none;">
-                        <button id="editWorkplaceBtn">Düzenle</button>
-                        <button id="deleteWorkplaceBtn">Sil</button>
+                        <button id="editWorkplaceBtn" class="action-btn">Düzenle</button>
+                        <button id="deleteWorkplaceBtn" class="delete-btn">Sil</button>
                     </div>
                     <h3 id="selectedWorkplace"></h3>
                     <div id="employeeList"></div>
@@ -52,9 +55,12 @@
                     <h3 id="modalTitle">İşyeri Ekle</h3>
                     <input type="text" id="workplaceName" placeholder="İşyeri Adı">
                     <input type="text" id="workplaceAddress" placeholder="Adres">
-                    <button id="saveWorkplaceBtn">Kaydet</button>
+                    <button id="saveWorkplaceBtn" class="save-btn">Kaydet</button>
                 </div>
             </div>
+
+            <!-- Ek-2 Modal -->
+            <div id="ek2Modal" class="modal"></div>
         </div>
     </div>
 
