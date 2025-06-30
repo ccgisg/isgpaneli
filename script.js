@@ -226,18 +226,53 @@ function renderEmployees(employees) {
     });
 }
 
-// Modal fonksiyonları
 function initModal() {
     const modal = document.getElementById('workplaceModal');
     const span = document.querySelector('.close');
     
-    document.getElementById('addWorkplaceBtn').onclick = () => {
-        currentModalMode = 'add';
-        document.getElementById('modalTitle').textContent = 'İşyeri Ekle';
-        document.getElementById('workplaceName').value = '';
-        document.getElementById('workplaceAddress').value = '';
-        modal.style.display = 'block';
+    // Ekle butonu için event listener
+    const addBtn = document.getElementById('addWorkplaceBtn');
+    if (addBtn) {
+        addBtn.addEventListener('click', () => {
+            currentModalMode = 'add';
+            document.getElementById('modalTitle').textContent = 'İşyeri Ekle';
+            document.getElementById('workplaceName').value = '';
+            document.getElementById('workplaceAddress').value = '';
+            modal.style.display = 'block';
+        });
+    }
+
+    // Düzenle butonu için event listener
+    const editBtn = document.getElementById('editWorkplaceBtn');
+    if (editBtn) {
+        editBtn.addEventListener('click', () => {
+            if (!appState.currentWorkplace) {
+                alert('Önce bir işyeri seçin!');
+                return;
+            }
+            currentModalMode = 'edit';
+            currentEditingId = appState.currentWorkplace.id;
+            document.getElementById('modalTitle').textContent = 'İşyeri Düzenle';
+            document.getElementById('workplaceName').value = appState.currentWorkplace.name;
+            document.getElementById('workplaceAddress').value = appState.currentWorkplace.address || '';
+            modal.style.display = 'block';
+        });
+    }
+
+    // Modal kapatma butonu
+    span.onclick = () => modal.style.display = 'none';
+    
+    // Dışarı tıklayarak kapatma
+    window.onclick = (event) => {
+        if (event.target === modal) modal.style.display = 'none';
     };
+
+    // Kaydet butonu
+    document.getElementById('saveWorkplaceBtn').onclick = saveWorkplace;
+    
+    // Sil butonu
+    document.getElementById('deleteWorkplaceBtn').onclick = deleteCurrentWorkplace;
+};
 
     document.getElementById('editWorkplaceBtn').onclick = () => {
         if (!appState.currentWorkplace) return;
