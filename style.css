@@ -1,78 +1,63 @@
-/* Önceki stilleri koruyun ve aşağıdakileri ekleyin */
-
-/* Ek-2 Form Stilleri */
-.ek2-form {
-    width: 100%;
-    padding: 20px;
-    font-family: Arial, sans-serif;
-}
-
-.ek2-form table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 20px;
-}
-
-.ek2-form table, .ek2-form th, .ek2-form td {
-    border: 1px solid #ddd;
-}
-
-.ek2-form th, .ek2-form td {
-    padding: 8px;
-    text-align: left;
-}
-
-.ek2-form th {
-    background-color: #f2f2f2;
-}
-
-.ek2-form input[type="text"],
-.ek2-form input[type="date"],
-.ek2-form select,
-.ek2-form textarea {
-    width: 100%;
-    padding: 6px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
-.ek2-form .checkbox-option {
+/* Temel Stiller */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(135deg, #1e5799 0%, #2989d8 50%, #207cca 100%);
+    min-height: 100vh;
     display: flex;
+    justify-content: center;
     align-items: center;
-    margin: 5px 0;
 }
 
-.ek2-form .checkbox-option input {
-    margin-right: 10px;
+.login-container {
+    width: 100%;
+    max-width: 1200px;
 }
 
-.ek2-form .signature-area {
-    margin-top: 50px;
-    text-align: right;
+/* Giriş Ekranı */
+#loginArea {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    padding: 40px;
+    width: 350px;
+    margin: 0 auto;
+    text-align: center;
 }
 
-.ek2-form .doctor-info {
-    margin-top: 100px;
+/* Ana Ekran */
+#mainView {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    padding: 20px;
+    width: 95%;
+    max-width: 1200px;
+    margin: 20px auto;
+    display: none;
 }
 
-/* Dosya Yükleme Butonu */
-.upload-btn {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-left: 10px;
+/* Dashboard Düzeni */
+.dashboard {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
 }
 
-.upload-btn:hover {
-    background-color: #45a049;
+.sidebar {
+    width: 250px;
+    background: #f5f5f5;
+    border-radius: 8px;
+    padding: 15px;
+    transition: all 0.3s ease;
 }
 
-/* Geri Butonu */
-#backButton {
-    margin-right: 10px;
+.content {
+    flex: 1;
+    background: #f5f5f5;
+    border-radius: 8px;
+    padding: 15px;
 }
 
 /* Responsive Düzen */
@@ -80,13 +65,9 @@
     .dashboard {
         flex-direction: column;
     }
-    
     .sidebar {
         width: 100%;
-        margin-bottom: 20px;
-    }
-    
-    .ek2-form table {
-        font-size: 12px;
     }
 }
+
+/* Diğer stiller... */
