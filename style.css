@@ -14,6 +14,25 @@
     --border-color: #ddd;
 }
 
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f7fa;
+    color: #333;
+    line-height: 1.6;
+}
+
+#app {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
 /* Giriş Ekranı */
 .login-screen {
     display: flex;
@@ -83,34 +102,33 @@
 
 .workplace-list {
     list-style: none;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1rem;
     padding: 0;
 }
 
 .workplace-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     background-color: var(--light-color);
-    padding: 1.2rem;
+    padding: 1rem;
     border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
+    margin-bottom: 0.5rem;
     border-left: 4px solid var(--primary-color);
 }
 
-.workplace-item:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
-}
-
-.workplace-item h4 {
-    color: var(--primary-color);
-    margin-bottom: 0.5rem;
+.workplace-info {
+    flex: 1;
+    cursor: pointer;
 }
 
 .workplace-actions {
     display: flex;
     gap: 0.5rem;
+}
+
+.workplace-actions button {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
 }
 
 /* Çalışan Tablosu */
@@ -126,6 +144,16 @@
     margin-top: 1rem;
 }
 
+.employee-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.employee-actions button {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
+}
+
 /* Modal İçeriği */
 .modal-content {
     border-radius: 10px;
@@ -139,26 +167,6 @@
     border-top: 1px solid var(--border-color);
 }
 
-/* Responsive Düzen */
-@media (max-width: 768px) {
-    .login-container {
-        padding: 1.5rem;
-        margin: 1rem;
-    }
-
-    .workplace-list {
-        grid-template-columns: 1fr;
-    }
-    
-    .table-actions {
-        flex-direction: column;
-    }
-    
-    .workplace-actions {
-        flex-direction: column;
-    }
-}
-
 /* Buton stilleri */
 .btn-warning {
     background-color: var(--warning-color);
@@ -168,4 +176,38 @@
 .btn-warning:hover {
     background-color: var(--warning-hover);
     color: white;
+}
+
+/* Responsive Düzen */
+@media (max-width: 768px) {
+    .login-container {
+        padding: 1.5rem;
+        margin: 1rem;
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .workplace-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .workplace-actions {
+        width: 100%;
+        justify-content: flex-end;
+        margin-top: 0.5rem;
+    }
+
+    .table-actions {
+        flex-direction: column;
+    }
+    
+    .employee-actions {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
 }
