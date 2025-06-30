@@ -1,4 +1,4 @@
-/* Genel Stiller */
+/* GENEL STİLLER */
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: #f8f9fa;
@@ -8,9 +8,9 @@ body {
   min-height: 100vh;
 }
 
-/* Giriş Ekranı */
+/* GİRİŞ EKRANI */
 .login-container {
-  display: flex;
+  display: flex !important;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
@@ -34,7 +34,7 @@ body {
   text-align: center;
 }
 
-/* Hata Mesajları */
+/* HATA MESAJI */
 .alert-error {
   color: #721c24;
   background-color: #f8d7da;
@@ -43,187 +43,105 @@ body {
   border-radius: 4px;
   margin-bottom: 15px;
   display: none;
+  animation: slideIn 0.3s ease-out;
 }
 
-/* Ana Panel */
+/* BUTONLAR */
+#loginButton, #testLogin {
+  transition: all 0.3s ease;
+  border: none;
+  font-weight: 600;
+}
+
+#loginButton {
+  background-color: #2575fc;
+}
+
+#testLogin {
+  background-color: #ffc107;
+  color: #212529;
+  margin-top: 10px;
+}
+
+#loginButton:hover, #testLogin:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+#loginButton:active, #testLogin:active {
+  transform: translateY(0);
+}
+
+/* INPUT ALANLARI */
+#username, #password {
+  transition: all 0.3s ease;
+  padding: 10px 15px;
+  border: 1px solid #ced4da;
+  border-radius: 8px;
+}
+
+#username:focus, #password:focus {
+  border-color: #2575fc;
+  box-shadow: 0 0 0 0.2rem rgba(37, 117, 252, 0.25);
+}
+
+/* ANA PANEL */
 #mainView {
   display: none;
-  opacity: 0;
-  transition: opacity 0.5s ease;
   min-height: 100vh;
 }
 
-#mainView.show {
-  display: block;
-  opacity: 1;
-}
-
 .navbar {
+  background-color: #2575fc !important;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  padding: 0.5rem 1rem;
 }
 
-/* Kart Stilleri */
+/* KARTLAR */
 .card {
   border: none;
   border-radius: 10px;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
   margin-bottom: 20px;
+  transition: transform 0.3s ease;
 }
 
-.card-header {
-  border-radius: 10px 10px 0 0 !important;
-  font-weight: 600;
-  padding: 1rem 1.25rem;
+.card:hover {
+  transform: translateY(-5px);
 }
 
-/* Tablo Stilleri */
+/* TABLOLAR */
 .table {
-  margin-top: 1rem;
   font-size: 0.9rem;
 }
 
 .table thead th {
   background-color: #2575fc;
   color: white;
-  vertical-align: middle;
+  position: sticky;
+  top: 0;
 }
 
-.table-hover tbody tr:hover {
-  background-color: rgba(37, 117, 252, 0.1);
+/* ANİMASYONLAR */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* Buton Stilleri */
-.btn {
-  border-radius: 8px;
-  padding: 8px 16px;
-  font-weight: 500;
-  transition: all 0.3s;
-  font-size: 0.9rem;
+@keyframes slideIn {
+  from { 
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.btn-primary {
-  background-color: #2575fc;
-  border-color: #2575fc;
-}
-
-.btn-primary:hover {
-  background-color: #1a68e0;
-  border-color: #1a68e0;
-}
-
-.btn-success {
-  background-color: #28a745;
-  border-color: #28a745;
-}
-
-.btn-success:hover {
-  background-color: #218838;
-  border-color: #1e7e34;
-}
-
-.btn-danger {
-  background-color: #dc3545;
-  border-color: #dc3545;
-}
-
-.btn-danger:hover {
-  background-color: #c82333;
-  border-color: #bd2130;
-}
-
-.btn-warning {
-  background-color: #ffc107;
-  border-color: #ffc107;
-  color: #212529;
-}
-
-.btn-warning:hover {
-  background-color: #e0a800;
-  border-color: #d39e00;
-}
-
-/* Modal Stilleri */
-.modal-content {
-  border-radius: 10px;
-}
-
-.modal-header {
-  border-radius: 10px 10px 0 0;
-  padding: 1rem 1.25rem;
-}
-
-/* EK-2 Form Özel Stilleri */
-.ek2-form-container {
-  font-family: 'Times New Roman', Times, serif;
-  font-size: 14px;
-  line-height: 1.5;
-  color: #000;
-  padding: 20px;
-  background-color: #fff;
-}
-
-.ek2-section {
-  margin-bottom: 20px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #ddd;
-}
-
-.ek2-section-title {
-  font-weight: bold;
-  font-size: 16px;
-  margin-bottom: 15px;
-  color: #2c3e50;
-}
-
-.ek2-form-group {
-  margin-bottom: 12px;
-}
-
-.ek2-label {
-  display: block;
-  font-weight: bold;
-  margin-bottom: 5px;
-}
-
-.ek2-input {
-  width: 100%;
-  padding: 6px 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background-color: #f9f9f9;
-  font-family: 'Times New Roman', Times, serif;
-  font-size: 14px;
-}
-
-.ek2-value {
-  padding: 6px 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background-color: #f9f9f9;
-  min-height: 34px;
-  font-family: 'Times New Roman', Times, serif;
-  font-size: 14px;
-}
-
-.ek2-checkbox-group {
-  margin-left: 20px;
-}
-
-.ek2-signature-box {
-  width: 200px;
-  height: 60px;
-  border-top: 1px solid #000;
-  margin-top: 50px;
-  text-align: center;
-  padding-top: 5px;
-}
-
-/* Responsive Düzenlemeler */
+/* RESPONSIVE */
 @media (max-width: 768px) {
   .login-box {
     padding: 1.5rem;
-    margin: 1rem;
   }
   
   .card {
@@ -234,104 +152,18 @@ body {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
-  
-  .navbar-brand {
-    font-size: 1rem;
-  }
 }
 
-/* Animasyonlar */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Özel Stiller */
-#employeeTable td, #employeeTable th {
-  vertical-align: middle;
-  white-space: nowrap;
-}
-
-.list-group-item {
-  cursor: pointer;
-  transition: background-color 0.2s;
-  padding: 0.75rem 1.25rem;
-}
-
-.list-group-item:hover {
-  background-color: #f8f9fa;
-}
-
-.input-group-text {
-  cursor: pointer;
-}
-
-/* Nav tabs */
-.nav-tabs {
-  border-bottom: 1px solid #dee2e6;
-}
-
-.nav-tabs .nav-link {
-  border: none;
-  color: #495057;
-  font-weight: 500;
-  padding: 0.75rem 1.25rem;
-}
-
-.nav-tabs .nav-link.active {
-  color: #2575fc;
-  border-bottom: 2px solid #2575fc;
-  background-color: transparent;
-}
-
-/* Form Kontrolleri */
-.form-control {
-  border-radius: 8px;
-  padding: 0.5rem 0.75rem;
-}
-
-.form-control:focus {
-  border-color: #86b7fe;
-  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-}
-
-/* Utility Classes */
-.mt-3 {
-  margin-top: 1rem !important;
-}
-
-.mb-3 {
-  margin-bottom: 1rem !important;
-}
-
-.w-100 {
-  width: 100% !important;
-}
-
-.text-center {
-  text-align: center !important;
-}
-
-.text-end {
-  text-align: end !important;
-}
-
-/* Özel Scrollbar */
+/* EK ÖZELLİKLER */
 ::-webkit-scrollbar {
   width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #2575fc;
+  background-color: #2575fc;
   border-radius: 10px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #1a68e0;
+::-webkit-scrollbar-track {
+  background-color: #f1f1f1;
 }
