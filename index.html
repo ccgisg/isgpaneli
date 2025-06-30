@@ -5,30 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>İşyeri Hekimliği Paneli</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
     <div id="app">
         <!-- Giriş Ekranı -->
-        <div id="loginScreen">
+        <div id="loginScreen" class="login-screen">
             <div class="login-container">
                 <h1>İşyeri Hekimliği Paneli</h1>
                 <div class="input-group">
                     <label for="username">Kullanıcı Adı</label>
-                    <input type="text" id="username" placeholder="hekim">
+                    <input type="text" id="username" placeholder="hekim" class="form-control">
                 </div>
                 <div class="input-group">
                     <label for="password">Şifre</label>
-                    <input type="password" id="password" placeholder="•••••••">
+                    <input type="password" id="password" placeholder="•••••••" class="form-control">
                 </div>
-                <button id="loginBtn" class="btn-primary">Giriş Yap</button>
+                <button id="loginBtn" class="btn btn-primary">Giriş Yap</button>
+                <div id="loginError" class="error-message"></div>
             </div>
         </div>
 
         <!-- Ana Uygulama -->
         <div id="mainApp" style="display:none;">
-            <header>
-                <h2 id="welcomeText">Hoş geldiniz, hekim</h2>
-                <button id="logoutBtn" class="btn-secondary">Çıkış Yap</button>
+            <header class="app-header">
+                <h2 id="welcomeText"></h2>
+                <button id="logoutBtn" class="btn btn-secondary">Çıkış Yap</button>
             </header>
 
             <div class="content-area">
@@ -36,19 +38,19 @@
                 <div id="workplaceSection">
                     <div class="section-header">
                         <h3>İşyerleri</h3>
-                        <button id="addWorkplaceBtn" class="btn-primary">+ Yeni Ekle</button>
+                        <button id="addWorkplaceBtn" class="btn btn-primary">+ Yeni Ekle</button>
                     </div>
-                    <ul id="workplaceList"></ul>
+                    <ul id="workplaceList" class="workplace-list"></ul>
                 </div>
 
                 <!-- Çalışan Listesi -->
                 <div id="employeeSection" style="display:none;">
                     <div class="section-header">
-                        <button id="backBtn" class="btn-secondary">← Geri</button>
+                        <button id="backBtn" class="btn btn-secondary">← Geri</button>
                         <h3 id="currentWorkplaceTitle"></h3>
                     </div>
                     <div class="table-container">
-                        <table id="employeeTable">
+                        <table id="employeeTable" class="table table-striped">
                             <thead>
                                 <tr>
                                     <th>S.No</th>
@@ -62,8 +64,8 @@
                             <tbody></tbody>
                         </table>
                         <div class="table-actions">
-                            <button id="exportExcelBtn" class="btn-success">Excel'e Aktar</button>
-                            <button id="importExcelBtn" class="btn-success">Excel'den Al</button>
+                            <button id="exportExcelBtn" class="btn btn-success">Excel'e Aktar</button>
+                            <button id="importExcelBtn" class="btn btn-success">Excel'den Al</button>
                         </div>
                     </div>
                 </div>
@@ -71,43 +73,69 @@
         </div>
 
         <!-- Modaller -->
-        <div id="workplaceModal" class="modal">
-            <div class="modal-content">
-                <span class="close-modal">&times;</span>
-                <h3 id="modalTitle">Yeni İşyeri</h3>
-                <div class="form-group">
-                    <label>İşyeri Adı</label>
-                    <input type="text" id="workplaceNameInput">
-                </div>
-                <div class="form-group">
-                    <label>Adres</label>
-                    <input type="text" id="workplaceAddressInput">
-                </div>
-                <button id="saveWorkplaceBtn" class="btn-primary">Kaydet</button>
-            </div>
-        </div>
-
-        <div id="ek2Modal" class="modal wide-modal">
-            <div class="modal-content">
-                <span class="close-modal">&times;</span>
-                <div id="ek2FormContent"></div>
-                <div class="form-actions">
-                    <button id="saveEk2Btn" class="btn-primary">Kaydet</button>
-                    <button id="printEk2Btn" class="btn-secondary">Yazdır</button>
+        <div id="workplaceModal" class="modal fade" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 id="modalTitle" class="modal-title">Yeni İşyeri</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>İşyeri Adı</label>
+                            <input type="text" id="workplaceNameInput" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Adres</label>
+                            <input type="text" id="workplaceAddressInput" class="form-control">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                        <button id="saveWorkplaceBtn" class="btn btn-primary">Kaydet</button>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div id="fileUploadModal" class="modal">
-            <div class="modal-content">
-                <span class="close-modal">&times;</span>
-                <h3>Dosya Yükle</h3>
-                <input type="file" id="fileInput" accept=".pdf,.jpeg,.jpg,.tif,.tiff">
-                <button id="uploadFileBtn" class="btn-primary">Yükle</button>
+        <div id="ek2Modal" class="modal fade" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">EK-2 Formu</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="ek2FormContent"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="printEk2Btn" class="btn btn-secondary">Yazdır</button>
+                        <button id="saveEk2Btn" class="btn btn-primary">Kaydet</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="fileUploadModal" class="modal fade" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Dosya Yükle</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="file" id="fileInput" class="form-control" accept=".pdf,.jpeg,.jpg,.tif,.tiff">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                        <button id="uploadFileBtn" class="btn btn-primary">Yükle</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
