@@ -34,12 +34,13 @@
                 </div>
             </header>
             <div class="dashboard">
-                <div class="sidebar">
+                <div class="sidebar" id="sidebar">
                     <h3>İşyerleri</h3>
                     <ul id="workplaceList"></ul>
                 </div>
                 <div class="content">
                     <div id="workplaceActions" style="display:none;">
+                        <button id="backButton" class="action-btn">← Geri</button>
                         <button id="editWorkplaceBtn" class="action-btn">Düzenle</button>
                         <button id="deleteWorkplaceBtn" class="delete-btn">Sil</button>
                     </div>
@@ -61,6 +62,16 @@
 
             <!-- Ek-2 Modal -->
             <div id="ek2Modal" class="modal"></div>
+
+            <!-- Dosya Yükleme Modal -->
+            <div id="fileUploadModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h3>Dosya Yükle</h3>
+                    <input type="file" id="fileInput" accept=".pdf,.jpeg,.jpg,.tif,.tiff">
+                    <button id="uploadFileBtn" class="save-btn">Yükle</button>
+                </div>
+            </div>
         </div>
     </div>
 
