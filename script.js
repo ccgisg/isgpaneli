@@ -1,3 +1,4 @@
+console.log
 // Veritabanı Yönetimi
 class Database {
   constructor() {
