@@ -222,7 +222,19 @@ function checkAuth() {
 }
 
 function login() {
+// script.js dosyasının en başına bu kodu ekleyin
+console.log("Script dosyası yüklendi!");
+
+// login fonksiyonunun içine bu satırları ekleyin
+function login() {
+  console.log("Login fonksiyonu çağrıldı!");
   const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+  
+  console.log("Girilen değerler:", username, password);
+  
+  // ... fonksiyonun geri kalanı
+}  const username = document.getElementById('username').value;
   const password = document.getElementById('password').value;
   
   // Basit bir doğrulama (gerçek uygulamada sunucu tarafında doğrulama yapılmalı)
