@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         initEmployeeActions();
     } catch (error) {
         console.error('Başlatma hatası:', error);
-        alert('Uygulama başlatılırken bir hata oluştu: ' + error.message);
+        showError('Uygulama başlatılırken bir hata oluştu: ' + error.message);
     }
 });
 
@@ -132,13 +132,23 @@ function initLogin() {
     if (loginBtn) {
         loginBtn.addEventListener('click', login);
     }
+    
+    // Enter tuşu ile giriş yapma
+    document.getElementById('password').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            login();
+        }
+    });
 }
 
 async function login() {
     try {
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value.trim();
+        const errorElement = document.getElementById('loginError');
 
+        errorElement.textContent = '';
+        
         if (!username || !password) {
             throw new Error('Kullanıcı adı ve şifre gereklidir');
         }
@@ -149,11 +159,21 @@ async function login() {
             showMainView();
             await loadWorkplaces();
         } else {
-            alert('Geçersiz kullanıcı adı veya şifre!');
+            throw new Error('Geçersiz kullanıcı adı veya şifre!');
         }
     } catch (error) {
         console.error('Giriş hatası:', error);
-        alert(`Giriş hatası: ${error.message}`);
+        showError(error.message);
+    }
+}
+
+function showError(message) {
+    const errorElement = document.getElementById('loginError');
+    if (errorElement) {
+        errorElement.textContent = message;
+        errorElement.style.display = 'block';
+    } else {
+        alert(message);
     }
 }
 
@@ -184,60 +204,7 @@ function initLogout() {
 
 // Modal İşlemleri
 function initModals() {
-    // Modal kapatma butonları
-    document.querySelectorAll('.close-modal').forEach(btn => {
-        btn.addEventListener('click', () => {
-            btn.closest('.modal').style.display = 'none';
-        });
-    });
-
-    // Dışarı tıklayarak kapatma
-    window.addEventListener('click', (event) => {
-        if (event.target.classList.contains('modal')) {
-            event.target.style.display = 'none';
-        }
-    });
-
-    // İşyeri ekleme modalı
-    const addWorkplaceBtn = document.getElementById('addWorkplaceBtn');
-    if (addWorkplaceBtn) {
-        addWorkplaceBtn.addEventListener('click', () => {
-            document.getElementById('modalTitle').textContent = 'Yeni İşyeri';
-            document.getElementById('workplaceNameInput').value = '';
-            document.getElementById('workplaceAddressInput').value = '';
-            document.getElementById('workplaceModal').style.display = 'block';
-        });
-    }
-
-    // İşyeri kaydetme butonu
-    const saveWorkplaceBtn = document.getElementById('saveWorkplaceBtn');
-    if (saveWorkplaceBtn) {
-        saveWorkplaceBtn.addEventListener('click', async () => {
-            const name = document.getElementById('workplaceNameInput').value;
-            const address = document.getElementById('workplaceAddressInput').value;
-
-            if (!name) {
-                alert('İşyeri adı gereklidir');
-                return;
-            }
-
-            try {
-                const workplace = {
-                    id: Date.now().toString(),
-                    name,
-                    address,
-                    createdAt: new Date().toISOString()
-                };
-
-                await appState.db.addWorkplace(workplace);
-                await loadWorkplaces();
-                document.getElementById('workplaceModal').style.display = 'none';
-            } catch (error) {
-                console.error('İşyeri ekleme hatası:', error);
-                alert('İşyeri eklenirken hata oluştu');
-            }
-        });
-    }
+    // Bootstrap modal yapısı kullanıldığı için ekstra init gerekmiyor
 }
 
 // İşyeri İşlemleri
@@ -253,6 +220,7 @@ async function loadWorkplaces() {
         renderWorkplaces(workplaces);
     } catch (error) {
         console.error('İşyerleri yüklenirken hata:', error);
+        showError('İşyerleri yüklenirken hata oluştu');
     }
 }
 
@@ -273,7 +241,11 @@ function renderWorkplaces(workplaces) {
 
     workplaces.forEach(workplace => {
         const li = document.createElement('li');
-        li.textContent = workplace.name;
+        li.className = 'workplace-item';
+        li.innerHTML = `
+            <h4>${workplace.name}</h4>
+            <p>${workplace.address || 'Adres bilgisi yok'}</p>
+        `;
         li.addEventListener('click', async () => {
             appState.currentWorkplace = workplace;
             await showWorkplaceDetails(workplace);
@@ -309,6 +281,7 @@ async function loadEmployees(workplaceId) {
         renderEmployees(employees);
     } catch (error) {
         console.error('Çalışanlar yüklenirken hata:', error);
+        showError('Çalışanlar yüklenirken hata oluştu');
     }
 }
 
@@ -332,8 +305,8 @@ function renderEmployees(employees) {
             <td>${emp.examDate || ''}</td>
             <td>${emp.nextExamDate || ''}</td>
             <td>
-                <button class="btn-primary" onclick="showEk2Modal(${index})">EK-2</button>
-                <button class="btn-secondary" onclick="showFileUploadModal(${index})">Dosya Yükle</button>
+                <button class="btn btn-sm btn-primary" onclick="showEk2Modal(${index})">EK-2</button>
+                <button class="btn btn-sm btn-secondary" onclick="showFileUploadModal(${index})">Dosya Yükle</button>
             </td>
         `;
         tbody.appendChild(tr);
@@ -343,34 +316,80 @@ function renderEmployees(employees) {
 // EK-2 Formu
 function showEk2Modal(employeeIndex) {
     const employee = appState.currentEmployees[employeeIndex];
+    const ek2Modal = new bootstrap.Modal(document.getElementById('ek2Modal'));
     
     // EK-2 form içeriğini oluştur
     const ek2Content = document.getElementById('ek2FormContent');
     ek2Content.innerHTML = `
-        <h3>EK-2 İŞE GİRİŞ/PERİYODİK MUAYENE FORMU</h3>
-        <div class="form-group">
-            <label>Adı Soyadı</label>
-            <input type="text" value="${employee.name || ''}">
-        </div>
-        <div class="form-group">
-            <label>TC Kimlik No</label>
-            <input type="text" value="${employee.tckn || ''}">
+        <h4>EK-2 İŞE GİRİŞ/PERİYODİK MUAYENE FORMU</h4>
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label">Adı Soyadı</label>
+                <input type="text" class="form-control" value="${employee.name || ''}">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">TC Kimlik No</label>
+                <input type="text" class="form-control" value="${employee.tckn || ''}">
+            </div>
         </div>
         <!-- Diğer form alanları buraya eklenecek -->
     `;
     
-    document.getElementById('ek2Modal').style.display = 'block';
+    ek2Modal.show();
 }
 
 // Dosya Yükleme Modalı
 function showFileUploadModal(employeeIndex) {
     appState.currentFileUploadIndex = employeeIndex;
     document.getElementById('fileInput').value = '';
-    document.getElementById('fileUploadModal').style.display = 'block';
+    const fileUploadModal = new bootstrap.Modal(document.getElementById('fileUploadModal'));
+    fileUploadModal.show();
 }
 
 // İşyeri ve Çalışan Eylemlerini Başlatma
 function initWorkplaceActions() {
+    // İşyeri ekleme butonu
+    const addWorkplaceBtn = document.getElementById('addWorkplaceBtn');
+    if (addWorkplaceBtn) {
+        addWorkplaceBtn.addEventListener('click', () => {
+            document.getElementById('modalTitle').textContent = 'Yeni İşyeri';
+            document.getElementById('workplaceNameInput').value = '';
+            document.getElementById('workplaceAddressInput').value = '';
+            const workplaceModal = new bootstrap.Modal(document.getElementById('workplaceModal'));
+            workplaceModal.show();
+        });
+    }
+
+    // İşyeri kaydetme butonu
+    const saveWorkplaceBtn = document.getElementById('saveWorkplaceBtn');
+    if (saveWorkplaceBtn) {
+        saveWorkplaceBtn.addEventListener('click', async () => {
+            const name = document.getElementById('workplaceNameInput').value.trim();
+            const address = document.getElementById('workplaceAddressInput').value.trim();
+
+            if (!name) {
+                showError('İşyeri adı gereklidir');
+                return;
+            }
+
+            try {
+                const workplace = {
+                    id: Date.now().toString(),
+                    name,
+                    address,
+                    createdAt: new Date().toISOString()
+                };
+
+                await appState.db.addWorkplace(workplace);
+                await loadWorkplaces();
+                bootstrap.Modal.getInstance(document.getElementById('workplaceModal')).hide();
+            } catch (error) {
+                console.error('İşyeri ekleme hatası:', error);
+                showError('İşyeri eklenirken hata oluştu');
+            }
+        });
+    }
+
     initBackButton();
     initLogout();
 }
@@ -405,7 +424,7 @@ function importFromExcel() {
 function uploadFile() {
     const fileInput = document.getElementById('fileInput');
     if (fileInput.files.length === 0) {
-        alert('Lütfen bir dosya seçin');
+        showError('Lütfen bir dosya seçin');
         return;
     }
 
@@ -413,7 +432,7 @@ function uploadFile() {
     const employee = appState.currentEmployees[appState.currentFileUploadIndex];
     
     alert(`${employee.name} için ${file.name} dosyası yüklenecek`);
-    document.getElementById('fileUploadModal').style.display = 'none';
+    bootstrap.Modal.getInstance(document.getElementById('fileUploadModal')).hide();
 }
 
 // Global fonksiyonlar
