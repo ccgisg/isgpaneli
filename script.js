@@ -2,7 +2,7 @@
 class Database {
     constructor() {
         this.dbName = 'isyeriHekimligiDB';
-        this.version = 5; // Versiyon artırıldı
+        this.version = 5;
         this.db = null;
     }
 
@@ -179,7 +179,6 @@ function initLogin() {
         loginBtn.addEventListener('click', login);
     }
     
-    // Enter tuşu ile giriş yapma
     document.getElementById('password').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             login();
@@ -289,17 +288,59 @@ function renderWorkplaces(workplaces) {
         const li = document.createElement('li');
         li.className = 'workplace-item';
         li.innerHTML = `
-            <h4>${workplace.name}</h4>
-            <p>${workplace.address || 'Adres bilgisi yok'}</p>
+            <div class="workplace-info">
+                <h4>${workplace.name}</h4>
+                <p>${workplace.address || 'Adres bilgisi yok'}</p>
+            </div>
+            <div class="workplace-actions">
+                <button class="btn btn-sm btn-warning edit-workplace" data-id="${workplace.id}">Düzenle</button>
+                <button class="btn btn-sm btn-danger delete-workplace" data-id="${workplace.id}">Sil</button>
+            </div>
         `;
         
-        // Çift tıklama ile işyeri detaylarını aç
-        li.addEventListener('dblclick', async () => {
+        li.querySelector('.workplace-info').addEventListener('dblclick', async () => {
             appState.currentWorkplace = workplace;
             await showWorkplaceDetails(workplace);
         });
         
         listElement.appendChild(li);
+    });
+
+    document.querySelectorAll('.edit-workplace').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const workplaceId = e.target.getAttribute('data-id');
+            const workplace = workplaces.find(w => w.id === workplaceId);
+            if (workplace) {
+                appState.isEditingWorkplace = true;
+                appState.currentWorkplace = workplace;
+                document.getElementById('modalTitle').textContent = 'İşyeri Düzenle';
+                document.getElementById('workplaceNameInput').value = workplace.name;
+                document.getElementById('workplaceAddressInput').value = workplace.address || '';
+                const workplaceModal = new bootstrap.Modal(document.getElementById('workplaceModal'));
+                workplaceModal.show();
+            }
+        });
+    });
+
+    document.querySelectorAll('.delete-workplace').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const workplaceId = e.target.getAttribute('data-id');
+            const workplace = workplaces.find(w => w.id === workplaceId);
+            if (workplace && confirm(`${workplace.name} işyerini silmek istediğinize emin misiniz?`)) {
+                try {
+                    const employees = await appState.db.getEmployees(workplaceId);
+                    for (const employee of employees) {
+                        await appState.db.deleteEmployee(employee.id);
+                    }
+                    
+                    await appState.db.deleteWorkplace(workplaceId);
+                    await loadWorkplaces();
+                } catch (error) {
+                    console.error('İşyeri silme hatası:', error);
+                    showError('İşyeri silinirken hata oluştu');
+                }
+            }
+        });
     });
 }
 
@@ -355,10 +396,21 @@ function renderEmployees(employees) {
             <td>${emp.examDate ? formatDate(emp.examDate) : ''}</td>
             <td>${emp.nextExamDate ? formatDate(emp.nextExamDate) : ''}</td>
             <td>
-                <button class="btn btn-sm btn-primary" onclick="showEk2Modal(${index})">EK-2</button>
-                <button class="btn btn-sm btn-secondary" onclick="showFileUploadModal(${index})">Dosya Yükle</button>
+                <div class="employee-actions">
+                    <button class="btn btn-sm btn-primary ek2-btn">EK-2</button>
+                    <button class="btn btn-sm btn-secondary upload-btn">EK-2 Yükle</button>
+                </div>
             </td>
         `;
+        
+        tr.querySelector('.ek2-btn').addEventListener('click', () => {
+            showEk2Modal(index);
+        });
+        
+        tr.querySelector('.upload-btn').addEventListener('click', () => {
+            showFileUploadModal(index);
+        });
+        
         tbody.appendChild(tr);
     });
 }
@@ -377,12 +429,10 @@ function showEk2Modal(employeeIndex) {
     const today = new Date();
     const formattedToday = today.toISOString().split('T')[0];
     
-    // 5 yıl sonrasını hesapla
     const nextExamDate = new Date();
     nextExamDate.setFullYear(nextExamDate.getFullYear() + 5);
     const formattedNextExamDate = nextExamDate.toISOString().split('T')[0];
     
-    // EK-2 form içeriğini oluştur
     const ek2Content = document.getElementById('ek2FormContent');
     ek2Content.innerHTML = `
         <h4>EK-2 İŞE GİRİŞ/PERİYODİK MUAYENE FORMU</h4>
@@ -412,7 +462,6 @@ function showEk2Modal(employeeIndex) {
     const ek2Modal = new bootstrap.Modal(document.getElementById('ek2Modal'));
     ek2Modal.show();
     
-    // Muayene tarihi değiştiğinde 5 yıl sonrasını otomatik hesapla
     document.getElementById('ek2ExamDate').addEventListener('change', function() {
         const examDate = new Date(this.value);
         const nextExamDate = new Date(examDate);
@@ -431,7 +480,6 @@ function showFileUploadModal(employeeIndex) {
 
 // İşyeri ve Çalışan Eylemlerini Başlatma
 function initWorkplaceActions() {
-    // İşyeri ekleme butonu
     const addWorkplaceBtn = document.getElementById('addWorkplaceBtn');
     if (addWorkplaceBtn) {
         addWorkplaceBtn.addEventListener('click', () => {
@@ -444,7 +492,6 @@ function initWorkplaceActions() {
         });
     }
 
-    // İşyeri düzenleme butonu
     const editWorkplaceBtn = document.getElementById('editWorkplaceBtn');
     if (editWorkplaceBtn) {
         editWorkplaceBtn.addEventListener('click', () => {
@@ -459,7 +506,6 @@ function initWorkplaceActions() {
         });
     }
 
-    // İşyeri silme butonu
     const deleteWorkplaceBtn = document.getElementById('deleteWorkplaceBtn');
     if (deleteWorkplaceBtn) {
         deleteWorkplaceBtn.addEventListener('click', async () => {
@@ -467,16 +513,13 @@ function initWorkplaceActions() {
             
             if (confirm(`${appState.currentWorkplace.name} işyerini silmek istediğinize emin misiniz?`)) {
                 try {
-                    // Önce bu işyerine ait çalışanları sil
                     const employees = await appState.db.getEmployees(appState.currentWorkplace.id);
                     for (const employee of employees) {
                         await appState.db.deleteEmployee(employee.id);
                     }
                     
-                    // Sonra işyerini sil
                     await appState.db.deleteWorkplace(appState.currentWorkplace.id);
                     
-                    // Ana sayfaya dön
                     document.getElementById('employeeSection').style.display = 'none';
                     document.getElementById('workplaceSection').style.display = 'block';
                     await loadWorkplaces();
@@ -489,7 +532,6 @@ function initWorkplaceActions() {
         });
     }
 
-    // İşyeri kaydetme butonu
     const saveWorkplaceBtn = document.getElementById('saveWorkplaceBtn');
     if (saveWorkplaceBtn) {
         saveWorkplaceBtn.addEventListener('click', async () => {
@@ -503,7 +545,6 @@ function initWorkplaceActions() {
 
             try {
                 if (appState.isEditingWorkplace && appState.currentWorkplace) {
-                    // Düzenleme modu
                     const workplace = {
                         ...appState.currentWorkplace,
                         name,
@@ -511,7 +552,6 @@ function initWorkplaceActions() {
                     };
                     await appState.db.updateWorkplace(workplace);
                 } else {
-                    // Yeni ekleme modu
                     const workplace = {
                         id: Date.now().toString(),
                         name,
@@ -530,11 +570,13 @@ function initWorkplaceActions() {
         });
     }
 
-    // Çalışan ekleme butonu
     const addEmployeeBtn = document.getElementById('addEmployeeBtn');
     if (addEmployeeBtn) {
         addEmployeeBtn.addEventListener('click', () => {
-            if (!appState.currentWorkplace) return;
+            if (!appState.currentWorkplace) {
+                showError('Önce bir işyeri seçmelisiniz');
+                return;
+            }
             
             document.getElementById('employeeNameInput').value = '';
             document.getElementById('employeeTcknInput').value = '';
@@ -545,7 +587,6 @@ function initWorkplaceActions() {
         });
     }
 
-    // Çalışan kaydetme butonu
     const saveEmployeeBtn = document.getElementById('saveEmployeeBtn');
     if (saveEmployeeBtn) {
         saveEmployeeBtn.addEventListener('click', async () => {
@@ -559,7 +600,6 @@ function initWorkplaceActions() {
             }
 
             try {
-                // 5 yıl sonrasını hesapla
                 let nextExamDate = '';
                 if (examDate) {
                     const nextDate = new Date(examDate);
@@ -587,7 +627,6 @@ function initWorkplaceActions() {
         });
     }
 
-    // EK-2 kaydetme butonu
     const saveEk2Btn = document.getElementById('saveEk2Btn');
     if (saveEk2Btn) {
         saveEk2Btn.addEventListener('click', async () => {
@@ -654,7 +693,6 @@ function exportToExcel() {
             return;
         }
 
-        // Excel verisini hazırla
         const data = [
             ['S.No', 'Ad Soyad', 'TCKN', 'Muayene Tarihi', 'Sonraki Muayene Tarihi'],
             ...appState.currentEmployees.map((emp, index) => [
@@ -666,12 +704,10 @@ function exportToExcel() {
             ])
         ];
 
-        // Workbook oluştur
         const wb = XLSX.utils.book_new();
         const ws = XLSX.utils.aoa_to_sheet(data);
         XLSX.utils.book_append_sheet(wb, ws, 'Çalışan Listesi');
 
-        // Excel dosyasını indir
         XLSX.writeFile(wb, `${appState.currentWorkplace.name}_Çalışan_Listesi.xlsx`);
     } catch (error) {
         console.error('Excel export hatası:', error);
@@ -679,7 +715,7 @@ function exportToExcel() {
     }
 }
 
-function importFromExcel() {
+async function importFromExcel() {
     try {
         if (!appState.currentWorkplace) {
             alert('Lütfen önce bir işyeri seçin');
@@ -708,24 +744,36 @@ function importFromExcel() {
                     }
                     
                     let importedCount = 0;
-                    for (const row of jsonData) {
+                    const errors = [];
+                    
+                    for (const [i, row] of jsonData.entries()) {
                         try {
-                            // Excel'den gelen verileri işle
-                            const name = row['Ad Soyad'] || row['Adı Soyadı'] || '';
-                            const tckn = row['TCKN'] || row['TC Kimlik No'] || '';
-                            const examDate = row['Muayene Tarihi'] || '';
+                            const name = row['Ad Soyad'] || row['Adı Soyadı'] || row['Ad Soyadı'] || '';
+                            const tckn = String(row['TCKN'] || row['TC Kimlik No'] || row['T.C. Kimlik No'] || '');
                             
-                            if (!name || !tckn) continue;
+                            if (!name || !tckn) {
+                                errors.push(`Satır ${i+1}: Ad soyad veya TCKN eksik`);
+                                continue;
+                            }
                             
-                            // 5 yıl sonrasını hesapla
+                            if (tckn.length !== 11 || isNaN(tckn)) {
+                                errors.push(`Satır ${i+1}: Geçersiz TCKN (${tckn})`);
+                                continue;
+                            }
+                            
+                            let examDate = '';
+                            if (row['Muayene Tarihi']) {
+                                const date = new Date(row['Muayene Tarihi']);
+                                if (!isNaN(date.getTime())) {
+                                    examDate = date.toISOString();
+                                }
+                            }
+                            
                             let nextExamDate = '';
                             if (examDate) {
-                                const examDateObj = new Date(examDate);
-                                if (!isNaN(examDateObj.getTime())) {
-                                    const nextDate = new Date(examDateObj);
-                                    nextDate.setFullYear(nextDate.getFullYear() + 5);
-                                    nextExamDate = nextDate.toISOString();
-                                }
+                                const nextDate = new Date(examDate);
+                                nextDate.setFullYear(nextDate.getFullYear() + 5);
+                                nextExamDate = nextDate.toISOString();
                             }
                             
                             const employee = {
@@ -733,7 +781,7 @@ function importFromExcel() {
                                 workplaceId: appState.currentWorkplace.id,
                                 name,
                                 tckn,
-                                examDate: examDate ? new Date(examDate).toISOString() : '',
+                                examDate,
                                 nextExamDate,
                                 createdAt: new Date().toISOString()
                             };
@@ -741,15 +789,20 @@ function importFromExcel() {
                             await appState.db.addEmployee(employee);
                             importedCount++;
                         } catch (error) {
-                            console.error('Satır işlenirken hata:', error);
+                            errors.push(`Satır ${i+1}: ${error.message}`);
                         }
                     }
                     
                     await loadEmployees(appState.currentWorkplace.id);
-                    alert(`${importedCount} çalışan başarıyla eklendi`);
+                    
+                    let resultMessage = `${importedCount} çalışan başarıyla eklendi`;
+                    if (errors.length > 0) {
+                        resultMessage += `\n\nHatalar:\n${errors.join('\n')}`;
+                    }
+                    alert(resultMessage);
                 } catch (error) {
                     console.error('Excel import hatası:', error);
-                    alert('Excel dosyası okunurken hata oluştu');
+                    alert('Excel dosyası okunurken hata oluştu: ' + error.message);
                 }
             };
             
@@ -759,7 +812,7 @@ function importFromExcel() {
         fileInput.click();
     } catch (error) {
         console.error('Excel import hatası:', error);
-        alert('Excel import işlemi sırasında hata oluştu');
+        alert('Excel import işlemi sırasında hata oluştu: ' + error.message);
     }
 }
 
@@ -774,8 +827,6 @@ function uploadFile() {
     const file = fileInput.files[0];
     const employee = appState.currentEmployees[appState.currentFileUploadIndex];
     
-    // Burada dosyayı işleyebilir veya sunucuya yükleyebilirsiniz
-    // Örnek olarak sadece bir alert gösteriyoruz
     alert(`${employee.name} için ${file.name} dosyası yüklenecek`);
     
     bootstrap.Modal.getInstance(document.getElementById('fileUploadModal')).hide();
