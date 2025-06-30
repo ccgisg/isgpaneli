@@ -26,7 +26,8 @@ class Database {
                     db.createObjectStore('workplaces', { keyPath: 'id' });
                 }
                 if (!db.objectStoreNames.contains('employees')) {
-                    db.createObjectStore('employees', { keyPath: 'id' });
+                    const store = db.createObjectStore('employees', { keyPath: 'id' });
+                    store.createIndex('workplaceId', 'workplaceId', { unique: false });
                 }
             };
         });
@@ -54,6 +55,30 @@ class Database {
             request.onerror = (event) => reject(event.target.error);
         });
     }
+
+    async addWorkplace(workplace) {
+        return new Promise((resolve) => {
+            const transaction = this.db.transaction(['workplaces'], 'readwrite');
+            const store = transaction.objectStore('workplaces');
+            store.add(workplace).onsuccess = () => resolve();
+        });
+    }
+
+    async updateWorkplace(workplace) {
+        return new Promise((resolve) => {
+            const transaction = this.db.transaction(['workplaces'], 'readwrite');
+            const store = transaction.objectStore('workplaces');
+            store.put(workplace).onsuccess = () => resolve();
+        });
+    }
+
+    async deleteWorkplace(id) {
+        return new Promise((resolve) => {
+            const transaction = this.db.transaction(['workplaces'], 'readwrite');
+            const store = transaction.objectStore('workplaces');
+            store.delete(id).onsuccess = () => resolve();
+        });
+    }
 }
 
 const appState = {
@@ -62,11 +87,17 @@ const appState = {
     currentWorkplace: null
 };
 
+// Modal değişkenleri
+let currentModalMode = 'add';
+let currentEditingId = null;
+
 // DOM Yüklendiğinde çalışacak fonksiyonlar
 document.addEventListener('DOMContentLoaded', () => {
     initLogin();
     initTestLogin();
     checkAuth();
+    initModal();
+    initLogout();
 });
 
 function initLogin() {
@@ -96,7 +127,6 @@ async function login() {
             throw new Error('Kullanıcı adı ve şifre gereklidir');
         }
 
-        // Demo giriş kontrolü
         if (username === 'hekim' && password === 'Sifre123!') {
             localStorage.setItem('authToken', 'demo-token');
             appState.currentUser = { username, role: 'doctor' };
@@ -139,7 +169,6 @@ async function loadWorkplaces() {
     try {
         const workplaces = await appState.db.getWorkplaces();
         
-        // Demo veri yoksa ekle
         if (workplaces.length === 0) {
             await addDemoData();
             return loadWorkplaces();
@@ -168,6 +197,7 @@ function renderWorkplaces(workplaces) {
 async function selectWorkplace(workplace) {
     appState.currentWorkplace = workplace;
     document.getElementById('selectedWorkplace').textContent = workplace.name;
+    document.getElementById('workplaceActions').style.display = 'block';
     await loadEmployees(workplace.id);
 }
 
@@ -196,6 +226,84 @@ function renderEmployees(employees) {
     });
 }
 
+// Modal fonksiyonları
+function initModal() {
+    const modal = document.getElementById('workplaceModal');
+    const span = document.querySelector('.close');
+    
+    document.getElementById('addWorkplaceBtn').onclick = () => {
+        currentModalMode = 'add';
+        document.getElementById('modalTitle').textContent = 'İşyeri Ekle';
+        document.getElementById('workplaceName').value = '';
+        document.getElementById('workplaceAddress').value = '';
+        modal.style.display = 'block';
+    };
+
+    document.getElementById('editWorkplaceBtn').onclick = () => {
+        if (!appState.currentWorkplace) return;
+        currentModalMode = 'edit';
+        currentEditingId = appState.currentWorkplace.id;
+        document.getElementById('modalTitle').textContent = 'İşyeri Düzenle';
+        document.getElementById('workplaceName').value = appState.currentWorkplace.name;
+        document.getElementById('workplaceAddress').value = appState.currentWorkplace.address || '';
+        modal.style.display = 'block';
+    };
+
+    span.onclick = () => modal.style.display = 'none';
+    window.onclick = (event) => {
+        if (event.target === modal) modal.style.display = 'none';
+    };
+
+    document.getElementById('saveWorkplaceBtn').onclick = saveWorkplace;
+    document.getElementById('deleteWorkplaceBtn').onclick = deleteCurrentWorkplace;
+}
+
+async function saveWorkplace() {
+    const name = document.getElementById('workplaceName').value.trim();
+    const address = document.getElementById('workplaceAddress').value.trim();
+
+    if (!name) {
+        alert('İşyeri adı boş olamaz!');
+        return;
+    }
+
+    const workplace = { name, address };
+
+    try {
+        if (currentModalMode === 'add') {
+            workplace.id = Date.now();
+            await appState.db.addWorkplace(workplace);
+        } else {
+            workplace.id = currentEditingId;
+            await appState.db.updateWorkplace(workplace);
+        }
+
+        document.getElementById('workplaceModal').style.display = 'none';
+        await loadWorkplaces();
+    } catch (error) {
+        console.error('Kayıt hatası:', error);
+        alert('Kayıt işlemi başarısız oldu!');
+    }
+}
+
+async function deleteCurrentWorkplace() {
+    if (!appState.currentWorkplace || !confirm('Bu işyerini silmek istediğinize emin misiniz?')) {
+        return;
+    }
+
+    try {
+        await appState.db.deleteWorkplace(appState.currentWorkplace.id);
+        appState.currentWorkplace = null;
+        document.getElementById('selectedWorkplace').textContent = '';
+        document.getElementById('employeeList').innerHTML = '';
+        document.getElementById('workplaceActions').style.display = 'none';
+        await loadWorkplaces();
+    } catch (error) {
+        console.error('Silme hatası:', error);
+        alert('Silme işlemi başarısız oldu!');
+    }
+}
+
 // Demo veri ekleme fonksiyonu
 async function addDemoData() {
     const workplaces = [
@@ -209,7 +317,6 @@ async function addDemoData() {
         { id: 3, workplaceId: 2, name: 'Ayşe Kaya', tckn: '33333333333', position: 'Yönetici' }
     ];
 
-    // İşyerlerini ekle
     for (const wp of workplaces) {
         await new Promise((resolve) => {
             const transaction = appState.db.db.transaction(['workplaces'], 'readwrite');
@@ -218,7 +325,6 @@ async function addDemoData() {
         });
     }
 
-    // Çalışanları ekle
     for (const emp of employees) {
         await new Promise((resolve) => {
             const transaction = appState.db.db.transaction(['employees'], 'readwrite');
@@ -227,6 +333,3 @@ async function addDemoData() {
         });
     }
 }
-
-// Sayfa yüklendiğinde logout butonunu başlat
-initLogout();
