@@ -48,6 +48,10 @@
                     <div class="section-header">
                         <button id="backBtn" class="btn btn-secondary">← Geri</button>
                         <h3 id="currentWorkplaceTitle"></h3>
+                        <div class="workplace-actions">
+                            <button id="editWorkplaceBtn" class="btn btn-warning">Düzenle</button>
+                            <button id="deleteWorkplaceBtn" class="btn btn-danger">Sil</button>
+                        </div>
                     </div>
                     <div class="table-container">
                         <table id="employeeTable" class="table table-striped">
@@ -64,6 +68,7 @@
                             <tbody></tbody>
                         </table>
                         <div class="table-actions">
+                            <button id="addEmployeeBtn" class="btn btn-primary">+ Çalışan Ekle</button>
                             <button id="exportExcelBtn" class="btn btn-success">Excel'e Aktar</button>
                             <button id="importExcelBtn" class="btn btn-success">Excel'den Al</button>
                         </div>
@@ -93,6 +98,35 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
                         <button id="saveWorkplaceBtn" class="btn btn-primary">Kaydet</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="employeeModal" class="modal fade" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Yeni Çalışan</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Adı Soyadı</label>
+                            <input type="text" id="employeeNameInput" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>TC Kimlik No</label>
+                            <input type="text" id="employeeTcknInput" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Muayene Tarihi</label>
+                            <input type="date" id="employeeExamDateInput" class="form-control">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                        <button id="saveEmployeeBtn" class="btn btn-primary">Kaydet</button>
                     </div>
                 </div>
             </div>
@@ -136,6 +170,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
