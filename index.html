@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İşyeri Hekimliği Programı</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+        body { background: #f0f2f5; color: #333; }
+        .hidden { display: none !important; }
+        
+        /* Login Screen */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+        }
+        .login-box {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            width: 350px;
+            text-align: center;
+        }
+        .login-box h2 { margin-bottom: 1.5rem; color: #444; }
+        .login-box input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .login-box button {
+            width: 100%;
+            padding: 12px;
+            background: #4a6cf7;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .login-box button:hover { background: #3a5bd9; }
+        .error-message { color: #e74c3c; margin-top: 1rem; }
+        
+        /* Main App */
+        #app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        .top-bar {
+            background: #2c3e50;
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .app-title { font-weight: bold; }
+        .logout-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        /* Main Content */
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        .sidebar {
+            width: 250px;
+            background: #34495e;
+            color: white;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+        .menu-section { margin-bottom: 1.5rem; }
+        .menu-title {
+            background: #2c3e50;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .workplace-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #2c3e50;
+            border-radius: 5px;
+        }
+        .workplace-item {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #2c3e50;
+        }
+        .workplace-item:hover { background: #2c3e50; }
+        .workplace-item.selected { background: #3498db; }
+        .month-list {
+            padding-left: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .month-item {
+            padding: 8px;
+            cursor: pointer;
+            border-bottom: 1px solid #2c3e50;
+        }
+        .month-item:hover { background: #2c3e50; }
+        .doc-list {
+            padding-left: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .doc-item {
+            padding: 8px;
+            cursor: pointer;
+            border-bottom: 1px solid #2c3e50;
+        }
+        .doc-item:hover { background: #2c3e50; }
+        
+        /* Main Panel */
+        .main-panel {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            background: white;
+        }
+        .workplace-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+        .action-buttons { display: flex; gap: 10px; }
+        .action-btn {
+            padding: 8px 16px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        /* People Table */
+        .people-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        .people-table th, .people-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .people-table th { background: #f2f2f2; }
+        .people-table tr:hover { background: #f5f5f5; }
+        .action-cell { display: flex; gap: 5px; }
+        .table-btn {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .ek2-btn { background: #2ecc71; color: white; }
+        .upload-btn { background: #9b59b6; color: white; }
+        .show-btn { background: #3498db; color: white; }
+        .edit-btn { background: #f39c12; color: white; }
+        .delete-btn { background: #e74c3c; color: white; }
+        
+        /* Modals */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            width: 500px;
+            max-width: 90%;
+            position: relative;
+        }
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; margin-bottom: 5px; }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 1.5rem;
+        }
+        .save-btn { background: #2ecc71; color: white; }
+        .cancel-btn { background: #95a5a6; color: white; }
+        
+        /* Document Viewer */
+        .doc-viewer {
+            width: 90%;
+            height: 90vh;
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="login-screen" class="login-container">
+        <div class="login-box">
+            <h2>İşyeri Hekimliği Programı</h2>
+            <input type="password" id="password-input" placeholder="Şifre">
+            <button id="login-btn">Giriş Yap</button>
+            <p id="login-error" class="error-message hidden"></p>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="app-container" class="hidden">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="app-title">İşyeri Hekimliği Programı</div>
+            <button id="logout-btn" class="logout-btn">Çıkış</button>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="menu-section">
+                    <div class="menu-title">İşyerlerim</div>
+                    <div id="workplace-list" class="workplace-list"></div>
+                    <button id="add-workplace-btn" style="width:100%;margin-top:10px;padding:8px;">İşyeri Ekle</button>
+                </div>
+                <div id="monthly-tasks-section" class="menu-section hidden">
+                    <div class="menu-title" id="monthly-tasks-title">Aylık İşlerim ▼</div>
+                    <div id="month-list" class="month-list hidden"></div>
+                </div>
+                <button id="settings-btn" style="position:absolute;bottom:20px;left:20px;width:calc(100% - 40px);padding:10px;">
+                    Ayarlar
+                </button>
+            </div>
+
+            <!-- Main Panel -->
+            <div class="main-panel">
+                <div id="workplace-view" class="hidden">
+                    <div class="workplace-header">
+                        <h2 id="current-workplace-name"></h2>
+                        <div class="action-buttons">
+                            <button id="import-excel-btn" class="action-btn">Excel'den Al</button>
+                            <button id="export-excel-btn" class="action-btn">Excel'e Ver</button>
+                            <button id="backup-btn" class="action-btn">Yedek Al</button>
+                            <button id="restore-btn" class="action-btn">Yedekten Dön</button>
+                            <button id="add-person-btn" class="action-btn">Kişi Ekle</button>
+                        </div>
+                    </div>
+                    <table class="people-table">
+                        <thead>
+                            <tr>
+                                <th>S.No</th>
+                                <th>TC Kimlik No</th>
+                                <th>İsim Soyisim</th>
+                                <th>Mevcut Muayene</th>
+                                <th>Sonraki Muayene</th>
+                                <th>İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody id="people-list"></tbody>
+                    </table>
+                </div>
+                <div id="welcome-view">
+                    <h2 style="text-align:center;margin-top:50px;">Hoş Geldiniz</h2>
+                    <p style="text-align:center;">Lütfen sol menüden bir işyeri seçin</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="workplace-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2 id="workplace-modal-title">İşyeri Ekle</h2>
+            <div class="form-group">
+                <label>İşyeri Adı</label>
+                <input type="text" id="workplace-name-input">
+            </div>
+            <div class="form-group">
+                <label>Lokasyon</label>
+                <input type="text" id="workplace-location-input">
+            </div>
+            <div class="form-group">
+                <label>Sertifika Türü</label>
+                <input type="text" id="workplace-certificate-input">
+            </div>
+            <div class="form-actions">
+                <button id="save-workplace-btn" class="save-btn">Kaydet</button>
+                <button id="cancel-workplace-btn" class="cancel-btn">İptal</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="person-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2 id="person-modal-title">Kişi Ekle</h2>
+            <div class="form-group">
+                <label>TC Kimlik No</label>
+                <input type="text" id="person-tc-input" maxlength="11">
+            </div>
+            <div class="form-group">
+                <label>İsim Soyisim</label>
+                <input type="text" id="person-name-input">
+            </div>
+            <div class="form-actions">
+                <button id="save-person-btn" class="save-btn">Kaydet</button>
+                <button id="cancel-person-btn" class="cancel-btn">İptal</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Doktor Bilgileri</h2>
+            <div class="form-group">
+                <label>Adı Soyadı</label>
+                <input type="text" id="doctor-name-input">
+            </div>
+            <div class="form-group">
+                <label>Diploma Tarih ve No</label>
+                <input type="text" id="doctor-diploma-input">
+            </div>
+            <div class="form-group">
+                <label>Diploma Tescil Tarih ve No</label>
+                <input type="text" id="doctor-registration-input">
+            </div>
+            <div class="form-group">
+                <label>İşyeri Hekimliği Belgesi Tarih ve No</label>
+                <input type="text" id="doctor-certificate-input">
+            </div>
+            <div class="form-actions">
+                <button id="save-settings-btn" class="save-btn">Kaydet</button>
+                <button id="cancel-settings-btn" class="cancel-btn">İptal</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="document-viewer-modal" class="modal hidden">
+        <div style="width:90%;height:90%;display:flex;justify-content:center;align-items:center;">
+            <span class="close-modal" style="position:absolute;top:20px;right:20px;font-size:30px;color:white;cursor:pointer;z-index:1001;">&times;</span>
+            <iframe id="document-viewer" class="doc-viewer" src=""></iframe>
+        </div>
+    </div>
+
+    <script>
+        // App State
+        const state = {
+            workplaces: [],
+            currentWorkplace: null,
+            people: {},
+            doctor: {},
+            documents: [
+                "ÇASMER MUTABAKAT.docx",
+                "ÇASMER PUANTAJ.xlsx",
+                "Genel Hijyen ve Saha Denetim Formu.xlsx",
+                "Mutfak Hijyen Denetim Formu.xlsx",
+                "Tuvalet Hijyen Denetim Formu.xlsx"
+            ],
+            months: [
+                "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
+                "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"
+            ]
+        };
+
+        // DOM Elements
+        const loginScreen = document.getElementById('login-screen');
+        const appContainer = document.getElementById('app-container');
+        const passwordInput = document.getElementById('password-input');
+        const loginBtn = document.getElementById('login-btn');
+        const loginError = document.getElementById('login-error');
+        const logoutBtn = document.getElementById('logout-btn');
+        
+        // Workplace elements
+        const workplaceList = document.getElementById('workplace-list');
+        const addWorkplaceBtn = document.getElementById('add-workplace-btn');
+        const workplaceView = document.getElementById('workplace-view');
+        const welcomeView = document.getElementById('welcome-view');
+        const currentWorkplaceName = document.getElementById('current-workplace-name');
+        const peopleList = document.getElementById('people-list');
+        
+        // Monthly tasks
+        const monthlyTasksSection = document.getElementById('monthly-tasks-section');
+        const monthlyTasksTitle = document.getElementById('monthly-tasks-title');
+        const monthList = document.getElementById('month-list');
+        
+        // Modals
+        const workplaceModal = document.getElementById('workplace-modal');
+        const workplaceModalTitle = document.getElementById('workplace-modal-title');
+        const workplaceNameInput = document.getElementById('workplace-name-input');
+        const workplaceLocationInput = document.getElementById('workplace-location-input');
+        const workplaceCertificateInput = document.getElementById('workplace-certificate-input');
+        const saveWorkplaceBtn = document.getElementById('save-workplace-btn');
+        const cancelWorkplaceBtn = document.getElementById('cancel-workplace-btn');
+        
+        const personModal = document.getElementById('person-modal');
+        const personModalTitle = document.getElementById('person-modal-title');
+        const personTcInput = document.getElementById('person-tc-input');
+        const personNameInput = document.getElementById('person-name-input');
+        const savePersonBtn = document.getElementById('save-person-btn');
+        const cancelPersonBtn = document.getElementById('cancel-person-btn');
+        
+        const settingsModal = document.getElementById('settings-modal');
+        const doctorNameInput = document.getElementById('doctor-name-input');
+        const doctorDiplomaInput = document.getElementById('doctor-diploma-input');
+        const doctorRegistrationInput = document.getElementById('doctor-registration-input');
+        const doctorCertificateInput = document.getElementById('doctor-certificate-input');
+        const saveSettingsBtn = document.getElementById('save-settings-btn');
+        const cancelSettingsBtn = document.getElementById('cancel-settings-btn');
+        const settingsBtn = document.getElementById('settings-btn');
+        
+        const documentViewerModal = document.getElementById('document-viewer-modal');
+        const documentViewer = document.getElementById('document-viewer');
+        
+        // Action buttons
+        const importExcelBtn = document.getElementById('import-excel-btn');
+        const exportExcelBtn = document.getElementById('export-excel-btn');
+        const backupBtn = document.getElementById('backup-btn');
+        const restoreBtn = document.getElementById('restore-btn');
+        const addPersonBtn = document.getElementById('add-person-btn');
+
+        // Initialize app
+        function init() {
+            loadData();
+            setupEventListeners();
+            renderWorkplaces();
+            renderDoctorInfo();
+        }
+
+        // Load data from localStorage
+        function loadData() {
+            const savedData = localStorage.getItem('workplaceDoctorData');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                state.workplaces = data.workplaces || [];
+                state.people = data.people || {};
+                state.doctor = data.doctor || {};
+            } else {
+                // Sample data
+                state.workplaces = [
+                    { id: '1', name: 'Örnek İşyeri 1', location: 'İstanbul', certificate: 'A Tipi' },
+                    { id: '2', name: 'Örnek İşyeri 2', location: 'Ankara', certificate: 'B Tipi' }
+                ];
+                
+                state.people = {
+                    '1': [
+                        { id: '1', tc: '12345678901', name: 'Ahmet Yılmaz', currentExam: '01.01.2023', nextExam: '01.01.2028' },
+                        { id: '2', tc: '23456789012', name: 'Mehmet Kaya', currentExam: '15.03.2023', nextExam: '15.03.2028' }
+                    ],
+                    '2': [
+                        { id: '3', tc: '34567890123', name: 'Ayşe Demir', currentExam: '10.02.2023', nextExam: '10.02.2028' }
+                    ]
+                ];
+                
+                state.doctor = {
+                    name: 'Dr. Ali Veli',
+                    diploma: '01.01.2010 - 12345',
+                    registration: '15.02.2010 - 67890',
+                    certificate: '20.03.2015 - 54321'
+                };
+                
+                saveData();
+            }
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('workplaceDoctorData', JSON.stringify({
+                workplaces: state.workplaces,
+                people: state.people,
+                doctor: state.doctor
+            }));
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Login
+            loginBtn.addEventListener('click', handleLogin);
+            passwordInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleLogin();
+            });
+            
+            // Logout
+            logoutBtn.addEventListener('click', handleLogout);
+            
+            // Workplace
+            addWorkplaceBtn.addEventListener('click', () => showWorkplaceModal());
+            
+            // Monthly tasks
+            monthlyTasksTitle.addEventListener('click', toggleMonthlyTasks);
+            
+            // Settings
+            settingsBtn.addEventListener('click', showSettingsModal);
+            
+            // Workplace modal
+            saveWorkplaceBtn.addEventListener('click', handleSaveWorkplace);
+            cancelWorkplaceBtn.addEventListener('click', () => hideModal(workplaceModal));
+            
+            // Person modal
+            savePersonBtn.addEventListener('click', handleSavePerson);
+            cancelPersonBtn.addEventListener('click', () => hideModal(personModal));
+            
+            // Settings modal
+            saveSettingsBtn.addEventListener('click', handleSaveSettings);
+            cancelSettingsBtn.addEventListener('click', () => hideModal(settingsModal));
+            
+            // Action buttons
+            addPersonBtn.addEventListener('click', () => showPersonModal());
+            
+            // Close modals
+            document.querySelectorAll('.close-modal').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    hideModal(this.closest('.modal'));
+                });
+            });
+            
+            // ESC to close modal
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    const openModal = document.querySelector('.modal:not(.hidden)');
+                    if (openModal) hideModal(openModal);
+                }
+            });
+        }
+
+        // Handle login
+        function handleLogin() {
+            const password = passwordInput.value.trim();
+            
+            if (password === '1234') {
+                loginError.classList.add('hidden');
+                loginScreen.classList.add('hidden');
+                appContainer.classList.remove('hidden');
+                passwordInput.value = '';
+            } else {
+                loginError.textContent = 'Geçersiz şifre!';
+                loginError.classList.remove('hidden');
+            }
+        }
+
+        // Handle logout
+        function handleLogout() {
+            appContainer.classList.add('hidden');
+            loginScreen.classList.remove('hidden');
+            state.currentWorkplace = null;
+            renderWorkplaceView();
+        }
+
+        // Render workplaces list
+        function renderWorkplaces() {
+            workplaceList.innerHTML = '';
+            
+            state.workplaces.forEach(workplace => {
+                const item = document.createElement('div');
+                item.className = 'workplace-item';
+                if (state.currentWorkplace && state.currentWorkplace.id === workplace.id) {
+                    item.classList.add('selected');
+                }
+                item.textContent = workplace.name;
+                item.addEventListener('click', () => selectWorkplace(workplace.id));
+                
+                // Right-click context menu
+                item.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    showWorkplaceContextMenu(e, workplace.id);
+                });
+                
+                workplaceList.appendChild(item);
+            });
+        }
+
+        // Select workplace
+        function selectWorkplace(workplaceId) {
+            state.currentWorkplace = state.workplaces.find(w => w.id === workplaceId);
+            renderWorkplaceView();
+            renderMonthlyTasks();
+        }
+
+        // Render workplace view
+        function renderWorkplaceView() {
+            if (state.currentWorkplace) {
+                welcomeView.classList.add('hidden');
+                workplaceView.classList.remove('hidden');
+                currentWorkplaceName.textContent = state.currentWorkplace.name;
+                renderPeopleList();
+            } else {
+                welcomeView.classList.remove('hidden');
+                workplaceView.classList.add('hidden');
+            }
+        }
+
+        // Render people list
+        function renderPeopleList() {
+            if (!state.currentWorkplace) return;
+            
+            peopleList.innerHTML = '';
+            const people = state.people[state.currentWorkplace.id] || [];
+            
+            people.forEach((person, index) => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${person.tc}</td>
+                    <td>${person.name}</td>
+                    <td>${person.currentExam || '-'}</td>
+                    <td>${person.nextExam || '-'}</td>
+                    <td class="action-cell">
+                        <button class="table-btn ek2-btn" data-id="${person.id}">Ek-2</button>
+                        <button class="table-btn upload-btn" data-id="${person.id}">Yükle</button>
+                        <button class="table-btn show-btn" data-id="${person.id}">Göster</button>
+                        <button class="table-btn edit-btn" data-id="${person.id}">Düzenle</button>
+                        <button class="table-btn delete-btn" data-id="${person.id}">Sil</button>
+                    </td>
+                `;
+                
+                peopleList.appendChild(row);
+            });
+            
+            // Add event listeners to action buttons
+            document.querySelectorAll('.ek2-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => handleCreateEk2(e.target.dataset.id));
+            });
+            
+            document.querySelectorAll('.upload-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => handleUploadEk2(e.target.dataset.id));
+            });
+            
+            document.querySelectorAll('.show-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => handleShowEk2(e.target.dataset.id));
+            });
+            
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => handleEditPerson(e.target.dataset.id));
+            });
+            
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => handleDeletePerson(e.target.dataset.id));
+            });
+        }
+
+        // Render monthly tasks
+        function renderMonthlyTasks() {
+            if (!state.currentWorkplace) return;
+            
+            monthList.innerHTML = '';
+            
+            const currentDate = new Date();
+            const currentMonth = currentDate.getMonth();
+            const currentYear = currentDate.getFullYear();
+            const currentDay = currentDate.getDate();
+            
+            // Show current month and next months (if after 15th, include next month)
+            const monthsToShow = currentDay > 15 ? 13 : 12;
+            
+            for (let i = 0; i < monthsToShow; i++) {
+                const monthIndex = (currentMonth + i) % 12;
+                const year = currentYear + Math.floor((currentMonth + i) / 12);
+                const monthName = `${state.months[monthIndex]} ${year}`;
+                
+                const monthItem = document.createElement('div');
+                monthItem.className = 'month-item';
+                monthItem.textContent = monthName;
+                monthItem.addEventListener('click', () => showMonthDocuments(monthName));
+                
+                monthList.appendChild(monthItem);
+            }
+        }
+
+        // Toggle monthly tasks visibility
+        function toggleMonthlyTasks() {
+            monthList.classList.toggle('hidden');
+            const arrow = monthlyTasksTitle.textContent.includes('▼') ? '▲' : '▼';
+            monthlyTasksTitle.textContent = monthlyTasksTitle.textContent.replace(/[▼▲]/, arrow);
+        }
+
+        // Show month documents
+        function showMonthDocuments(monthName) {
+            const docList = document.createElement('div');
+            docList.className = 'doc-list';
+            
+            state.documents.forEach(doc => {
+                const docItem = document.createElement('div');
+                docItem.className = 'doc-item';
+                docItem.textContent = `${monthName} ${doc}`;
+                docItem.addEventListener('click', () => openDocument(`${monthName} ${doc}`));
+                docList.appendChild(docItem);
+            });
+            
+            // Clear and show documents
+            monthList.innerHTML = '';
+            monthList.appendChild(docList);
+        }
+
+        // Open document
+        function openDocument(docName) {
+            // In a real app, this would open the actual document
+            // For simulation, we'll just show the name
+            console.log(`Opening document: ${docName}`);
+            
+            // Simulate opening the document in a viewer
+            documentViewer.src = `assets/documents/${docName.split(' ').pop()}`;
+            showModal(documentViewerModal);
+        }
+
+        // Show workplace modal
+        function showWorkplaceModal(workplace = null) {
+            if (workplace) {
+                workplaceModalTitle.textContent = 'İşyeri Düzenle';
+                workplaceNameInput.value = workplace.name;
+                workplaceLocationInput.value = workplace.location;
+                workplaceCertificateInput.value = workplace.certificate;
+                workplaceModal.dataset.id = workplace.id;
+            } else {
+                workplaceModalTitle.textContent = 'İşyeri Ekle';
+                workplaceNameInput.value = '';
+                workplaceLocationInput.value = '';
+                workplaceCertificateInput.value = '';
+                delete workplaceModal.dataset.id;
+            }
+            
+            showModal(workplaceModal);
+        }
+
+        // Handle save workplace
+        function handleSaveWorkplace(e) {
+            e.preventDefault();
+            
+            const name = workplaceNameInput.value.trim();
+            const location = workplaceLocationInput.value.trim();
+            const certificate = workplaceCertificateInput.value.trim();
+            
+            if (!name) {
+                alert('İşyeri adı boş olamaz!');
+                return;
+            }
+            
+            if (workplaceModal.dataset.id) {
+                // Edit existing
+                const workplaceId = workplaceModal.dataset.id;
+                const workplace = state.workplaces.find(w => w.id === workplaceId);
+                
+                if (workplace) {
+                    workplace.name = name;
+                    workplace.location = location;
+                    workplace.certificate = certificate;
+                }
+            } else {
+                // Add new
+                const newWorkplace = {
+                    id: Date.now().toString(),
+                    name,
+                    location,
+                    certificate
+                };
+                
+                state.workplaces.push(newWorkplace);
+                state.people[newWorkplace.id] = [];
+            }
+            
+            saveData();
+            renderWorkplaces();
+            hideModal(workplaceModal);
+        }
+
+        // Show person modal
+        function showPersonModal(person = null) {
+            if (!state.currentWorkplace) return;
+            
+            if (person) {
+                personModalTitle.textContent = 'Kişi Düzenle';
+                personTcInput.value = person.tc;
+                personNameInput.value = person.name;
+                personModal.dataset.id = person.id;
+            } else {
+                personModalTitle.textContent = 'Kişi Ekle';
+                personTcInput.value = '';
+                personNameInput.value = '';
+                delete personModal.dataset.id;
+            }
+            
+            showModal(personModal);
+        }
+
+        // Handle save person
+        function handleSavePerson(e) {
+            e.preventDefault();
+            
+            if (!state.currentWorkplace) return;
+            
+            const tc = personTcInput.value.trim();
+            const name = personNameInput.value.trim();
+            
+            if (!tc || tc.length !== 11 || !/^\d+$/.test(tc)) {
+                alert('Geçerli bir TC kimlik numarası giriniz (11 haneli)!');
+                return;
+            }
+            
+            if (!name) {
+                alert('İsim soyisim boş olamaz!');
+                return;
+            }
+            
+            const workplaceId = state.currentWorkplace.id;
+            
+            if (personModal.dataset.id) {
+                // Edit existing
+                const personId = personModal.dataset.id;
+                const person = state.people[workplaceId].find(p => p.id === personId);
+                
+                if (person) {
+                    person.tc = tc;
+                    person.name = name;
+                }
+            } else {
+                // Add new
+                const newPerson = {
+                    id: Date.now().toString(),
+                    tc,
+                    name,
+                    currentExam: '',
+                    nextExam: ''
+                };
+                
+                if (!state.people[workplaceId]) {
+                    state.people[workplaceId] = [];
+                }
+                
+                state.people[workplaceId].push(newPerson);
+            }
+            
+            saveData();
+            renderPeopleList();
+            hideModal(personModal);
+        }
+
+        // Handle edit person
+        function handleEditPerson(personId) {
+            if (!state.currentWorkplace) return;
+            
+            const person = state.people[state.currentWorkplace.id].find(p => p.id === personId);
+            if (person) showPersonModal(person);
+        }
+
+        // Handle delete person
+        function handleDeletePerson(personId) {
+            if (!state.currentWorkplace || !confirm('Bu kişiyi silmek istediğinize emin misiniz?')) return;
+            
+            const workplaceId = state.currentWorkplace.id;
+            state.people[workplaceId] = state.people[workplaceId].filter(p => p.id !== personId);
+            
+            saveData();
+            renderPeopleList();
+        }
+
+        // Handle create Ek-2
+        function handleCreateEk2(personId) {
+            if (!state.currentWorkplace) return;
+            
+            const person = state.people[state.currentWorkplace.id].find(p => p.id === personId);
+            if (!person) return;
+            
+            // Set exam dates
+            const currentDate = formatDate(new Date());
+            const nextExamDate = calculateNextExamDate(currentDate);
+            
+            person.currentExam = currentDate;
+            person.nextExam = nextExamDate;
+            
+            // Open Ek-2 document (simulated)
+            console.log(`Ek-2 oluşturuluyor: ${person.name} - ${person.tc}`);
+            documentViewer.src = 'assets/documents/ccgisg_ek_2.docx';
+            showModal(documentViewerModal);
+            
+            saveData();
+            renderPeopleList();
+        }
+
+        // Handle upload Ek-2
+        function handleUploadEk2(personId) {
+            if (!state.currentWorkplace) return;
+            
+            const person = state.people[state.currentWorkplace.id].find(p => p.id === personId);
+            if (!person) return;
+            
+            // Simulate file upload
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.docx';
+            input.onchange = () => {
+                if (input.files && input.files[0]) {
+                    alert(`${input.files[0].name} dosyası başarıyla yüklendi.`);
+                }
+            };
+            input.click();
+        }
+
+        // Handle show Ek-2
+        function handleShowEk2(personId) {
+            if (!state.currentWorkplace) return;
+            
+            const person = state.people[state.currentWorkplace.id].find(p => p.id === personId);
+            if (!person) return;
+            
+            // Simulate showing Ek-2 documents
+            alert(`${person.name} için kayıtlı Ek-2 belgeleri gösterilecek.`);
+        }
+
+        // Show settings modal
+        function showSettingsModal() {
+            renderDoctorInfo();
+            showModal(settingsModal);
+        }
+
+        // Render doctor info
+        function renderDoctorInfo() {
+            doctorNameInput.value = state.doctor.name || '';
+            doctorDiplomaInput.value = state.doctor.diploma || '';
+            doctorRegistrationInput.value = state.doctor.registration || '';
+            doctorCertificateInput.value = state.doctor.certificate || '';
+        }
+
+        // Handle save settings
+        function handleSaveSettings(e) {
+            e.preventDefault();
+            
+            state.doctor = {
+                name: doctorNameInput.value.trim(),
+                diploma: doctorDiplomaInput.value.trim(),
+                registration: doctorRegistrationInput.value.trim(),
+                certificate: doctorCertificateInput.value.trim()
+            };
+            
+            saveData();
+            hideModal(settingsModal);
+        }
+
+        // Show workplace context menu
+        function showWorkplaceContextMenu(e, workplaceId) {
+            e.preventDefault();
+            
+            // Remove existing menu
+            const existingMenu = document.querySelector('.context-menu');
+            if (existingMenu) existingMenu.remove();
+            
+            // Create menu
+            const menu = document.createElement('div');
+            menu.className = 'context-menu';
+            menu.style.position = 'absolute';
+            menu.style.left = `${e.clientX}px`;
+            menu.style.top = `${e.clientY}px`;
+            menu.style.background = 'white';
+            menu.style.border = '1px solid #ddd';
+            menu.style.boxShadow = '2px 2px 5px rgba(0,0,0,0.2)';
+            menu.style.zIndex = '1000';
+            
+            // Edit option
+            const editOption = document.createElement('div');
+            editOption.textContent = 'Düzenle';
+            editOption.style.padding = '8px 12px';
+            editOption.style.cursor = 'pointer';
+            editOption.addEventListener('click', () => {
+                const workplace = state.workplaces.find(w => w.id === workplaceId);
+                if (workplace) showWorkplaceModal(workplace);
+                menu.remove();
+            });
+            
+            // Delete option
+            const deleteOption = document.createElement('div');
+            deleteOption.textContent = 'Sil';
+            deleteOption.style.padding = '8px 12px';
+            deleteOption.style.cursor = 'pointer';
+            deleteOption.addEventListener('click', () => {
+                if (confirm('Bu işyerini silmek istediğinize emin misiniz?')) {
+                    state.workplaces = state.workplaces.filter(w => w.id !== workplaceId);
+                    delete state.people[workplaceId];
+                    saveData();
+                    renderWorkplaces();
+                    
+                    if (state.currentWorkplace && state.currentWorkplace.id === workplaceId) {
+                        state.currentWorkplace = null;
+                        renderWorkplaceView();
+                    }
+                }
+                menu.remove();
+            });
+            
+            menu.appendChild(editOption);
+            menu.appendChild(deleteOption);
+            document.body.appendChild(menu);
+            
+            // Close menu when clicking outside
+            const closeMenu = (e) => {
+                if (!menu.contains(e.target)) {
+                    menu.remove();
+                    document.removeEventListener('click', closeMenu);
+                }
+            };
+            
+            setTimeout(() => {
+                document.addEventListener('click', closeMenu);
+            }, 10);
+        }
+
+        // Show modal
+        function showModal(modal) {
+            modal.classList.remove('hidden');
+        }
+
+        // Hide modal
+        function hideModal(modal) {
+            modal.classList.add('hidden');
+        }
+
+        // Format date as dd.mm.yyyy
+        function formatDate(date) {
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}.${month}.${year}`;
+        }
+
+        // Calculate next exam date (5 years later)
+        function calculateNextExamDate(dateStr) {
+            const [day, month, year] = dateStr.split('.').map(Number);
+            const date = new Date(year, month - 1, day);
+            date.setFullYear(date.getFullYear() + 5);
+            return formatDate(date);
+        }
+
+        // Initialize the app
+        init();
+    </script>
+</body>
+</html>
